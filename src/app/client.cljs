@@ -16,7 +16,9 @@
         :initial-state (fn [{:keys [id model]}]
                            {:car/id    id
                             :car/model model})
-        :ident         :car/id}
+        :ident         :car/id
+        ;; NOTE optional elements within a component
+        :some-random-data "random data"}
        (dom/div "Model: " model))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
@@ -33,6 +35,7 @@
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
 (defsc Person [this #_{:keys [:person/id :person/name :person/age :person/cars] :as props}
                {:person/keys [id name age cars] :as props}]
+
        {:query         [:person/id :person/name :person/age #_:person/cars
                         {:person/cars (comp/get-query Car)}]
         #_:initial-state #_(fn [{:keys [id name]}]
@@ -47,6 +50,7 @@
                         :person/cars [{:id 0 :model "Feet"}
                                        {:id 1 :model "Wheel"}]}
         :ident         :person/id}
+
        (dom/div :.ui.form                                   ;; {:className "ui form"}
          (dom/div :.ui.field {:style {:color "red"}}
                   (dom/label  "Name: ")
@@ -167,5 +171,9 @@
   (comp/transact! APP [(make-older {:person/id 1})
                        ;; other mutations
                        ])
+
+
+  (comp/component-options Car)
+
 
   )
