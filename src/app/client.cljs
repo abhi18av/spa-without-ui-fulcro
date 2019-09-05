@@ -9,16 +9,18 @@
 
 
 (defsc Car [this {:car/keys [id model] :as props}]
-       {}
-       (dom/div "Model: " model))
+       {:query [:car/id :car/model]
+        :ident :car/id}
+       #_(dom/div "Model: " model))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
 
 
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
 (defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
-       {}
-       (dom/div
+       {:query [:person/id :person/name { :person/cars (comp/get-query Car)}]
+        :ident :person/id}
+       #_(dom/div
        (dom/div "Name: " name)
        (dom/h3 "Cars: ")
        (dom/ul (map ui-car cars))))
@@ -26,11 +28,11 @@
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
 
-(defsc Sample [this {:keys [sample]}]
-  {}
+(defsc Sample [this {:root/keys [person]}]
+  {:query [{:root/person (comp/get-query Person)}]}
   (dom/div
     (dom/div "Hello, World!")
-    (dom/div (ui-person sample))))
+    (dom/div (ui-person person))))
 
 (defonce APP (app/fulcro-app))
 
@@ -57,6 +59,28 @@
                                          :person/name "Joe"
                                          :person/cars [{:car/id 22
                                                         :car/model "Escort"}]}})
+(app/current-state APP)
+
+(reset! (::app/state-atom APP) {})
+
+
+
+(merge/merge-component! APP Person {:person/id 1
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id 22
+                                                        :car/model "Ford"}]})
+
+(merge/merge-component! APP Person {:person/id 2
+                                             :person/name "Sally"
+                                             :person/cars [{:car/id 23
+                                                            :car/model "BMW"}]})
+
+(merge/merge-component! APP Person {:person/id 3
+                                             :person/name "Billy"
+                                             :person/cars [{:car/id 24
+                                                            :car/model "Ferrari"}]})
+
+(meta (comp/get-query Person))
 
 
 )
