@@ -4,6 +4,7 @@
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
+    [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
     [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
 
 
@@ -61,6 +62,14 @@
 (defn ^:export init []
       (app/mount! APP Sample "app"))
 
+(defmutation make-older [{:person/keys [id]}]
+  #_(remote [env] true)                                     ;; env is simply a map
+  #_(rest [env] true)
+  (action [{:keys [state]}]
+          (swap! state update-in [:person/id id
+                                  :person/age] inc )))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
@@ -99,6 +108,7 @@
                                                      :car/model "BMW"}]})
 
   (merge/merge-component! APP Person {:person/id   3
+                                      :person/age 45
                                       :person/name "Billy"
                                       :person/cars [{:car/id    24
                                                      :car/model "Ferrari"}]}
@@ -130,5 +140,24 @@
 
   (comp/get-ident Car {:car/id    22
                        :car/model "Ford"})
+
+  ;; by default return themselves as data
+  ;;  `(make-older ~{:a 1}) ;; fulcro2
+  (make-older {:a 1})
+
+  (reset! (::app/state-atom APP) {})
+
+  (app/current-state APP)
+
+  (merge/merge-component! APP Person {:person/id 1 :person/age 20})
+
+  (swap! (::app/state-atom APP) assoc-in [:person/id 1 :person/age] 22)
+
+  (swap! (::app/state-atom APP) update-in [:person/id id :person/age] inc )
+
+;; operate simply on Adam
+  (comp/transact! APP [(make-older {:person/id 1})
+                       ;; other mutations
+                       ])
 
   )
