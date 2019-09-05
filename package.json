@@ -1,0 +1,13 @@
+{
+  "name": "fulcro3-yt-videos",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "shadow-cljs": "^2.8.52"
+  }
+}
