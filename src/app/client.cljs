@@ -49,8 +49,18 @@
                         :person/age 33
                         :person/cars [{:id 0 :model "Feet"}
                                        {:id 1 :model "Wheel"}]}
-        :ident         :person/id}
+        :ident         :person/id
+        ;; NOTE react lifecycle methods ( should component is provided by default in fulcro3
+        #_:shouldComponentUpdate #_(fn [this props state])
+        :componentDidMount (fn [this]
+                             (let [p (comp/props this)]
+                                  (js/console.log "MOUNTED" p)))
+        :initLocalState (fn [this props]
+                             {:a 2})
+        }
 
+(let [s (comp/get-state this)]
+  (js/console.log "LOCAL STATE " s)
        (dom/div :.ui.form                                   ;; {:className "ui form"}
          (dom/div :.ui.field {:style {:color "red"}}
                   (dom/label  "Name: ")
@@ -60,7 +70,7 @@
            age)
          (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
          (dom/h3 "Cars: ")
-         (dom/ul (map ui-car cars))))
+         (dom/ul (map ui-car cars)))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
