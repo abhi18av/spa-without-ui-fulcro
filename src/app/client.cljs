@@ -10,6 +10,9 @@
 
 (defsc Car [this {:car/keys [id model] :as props}]
        {:query [:car/id :car/model]
+        :initial-state (fn [{:keys [id model]}]
+                           {:car/id id
+                            :car/model model})
         :ident :car/id}
        (dom/div "Model: " model))
 
@@ -19,6 +22,12 @@
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
 (defsc Person [this {:keys [:person/id :person/name :person/age :person/cars] :as props}]
        {:query [:person/id :person/name :person/age #_:person/cars {:person/cars (comp/get-query Car)}]
+        :initial-state (fn [{:keys [id name]}]
+                           {:person/id id
+                            :person/name name
+                            :person/age 33
+                            :person/cars [(comp/get-initial-state Car {:id 0 :model "Feet"})
+                                          (comp/get-initial-state Car {:id 1 :model "Wheel"})]})
         :ident :person/id}
        (dom/div
        (dom/div "Name: " name)
@@ -30,7 +39,8 @@
 
 
 (defsc Sample [this {:root/keys [person]}]
-  {:query [{:root/person (comp/get-query Person)}]}
+  {:query [{:root/person (comp/get-query Person)}]
+   :initial-state (fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})}
   (dom/div
     (dom/div "Hello, World!")
     (dom/div (ui-person person))))
@@ -95,6 +105,9 @@
                         :append [:person/id 3 :person/cars])
 
 
+(comp/get-query Sample)
+
+(comp/get-initial-state Sample)
 
 (app/current-state APP)
 
@@ -102,6 +115,7 @@
 (comp/get-query Person)
 
 (comp/get-query Car)
+
 
 (comp/get-ident Car {:car/id 22
                      :car/model "Ford"})
