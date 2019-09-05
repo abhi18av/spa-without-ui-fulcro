@@ -11,17 +11,18 @@
 (defsc Car [this {:car/keys [id model] :as props}]
        {:query [:car/id :car/model]
         :ident :car/id}
-       #_(dom/div "Model: " model))
+       (dom/div "Model: " model))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
 
 
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
-(defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
-       {:query [:person/id :person/name { :person/cars (comp/get-query Car)}]
+(defsc Person [this {:keys [:person/id :person/name :person/age :person/cars] :as props}]
+       {:query [:person/id :person/name :person/age #_:person/cars {:person/cars (comp/get-query Car)}]
         :ident :person/id}
-       #_(dom/div
+       (dom/div
        (dom/div "Name: " name)
+       (dom/div "Age: " age)
        (dom/h3 "Cars: ")
        (dom/ul (map ui-car cars))))
 
@@ -64,6 +65,7 @@
 (reset! (::app/state-atom APP) {})
 
 
+(swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 22)
 
 (merge/merge-component! APP Person {:person/id 1
                                          :person/name "Joe"
@@ -78,9 +80,30 @@
 (merge/merge-component! APP Person {:person/id 3
                                              :person/name "Billy"
                                              :person/cars [{:car/id 24
-                                                            :car/model "Ferrari"}]})
+                                                            :car/model "Ferrari"}]}
+                       :replace [:root/person])
+
+
+
+(merge/merge-component! APP Car {:car/id 20
+                                 :car/model "Mercedes"})
+
+(merge/merge-component! APP Car
+                        {:car/id 18
+                         :car/model "Tesla"}
+
+                        :append [:person/id 3 :person/cars])
+
+
+
+(app/current-state APP)
 
 (meta (comp/get-query Person))
+(comp/get-query Person)
 
+(comp/get-query Car)
+
+(comp/get-ident Car {:car/id 22
+                     :car/model "Ford"})
 
 )
