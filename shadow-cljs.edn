@@ -3,7 +3,7 @@
  :dev-http {8000 "resources/public"}
  :builds {:main {:target :browser
                  :output-dir "resources/public/js/main"
-                 :modules {:main {:init-fn app.client/init }
-
-                           :devtools {:after-load app.client/init
-                                      :preloads [com.fulcrologic.fulcro.inspect.preload]}}}}}
+                 :asset-path "/js/main"
+                 :modules {:main {:init-fn app.client/init }}
+                 :devtools {:after-load app.client/init
+                            :preloads [com.fulcrologic.fulcro.inspect.preload]}}}}
