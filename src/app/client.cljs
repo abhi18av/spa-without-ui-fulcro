@@ -56,14 +56,13 @@
                              (let [p (comp/props this)]
                                   (js/console.log "MOUNTED" p)))
         :initLocalState (fn [this props]
-                             {:a 2})
+                             {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})
         }
 
-(let [s (comp/get-state this)]
-  (js/console.log "LOCAL STATE " s)
+(let [onClick (comp/get-state this :onClick)]
        (dom/div :.ui.form                                   ;; {:className "ui form"}
          (dom/div :.ui.field {:style {:color "red"}}
-                  (dom/label  "Name: ")
+                  (dom/label {:onClick onClick} "Name: ")
                   name)
          (dom/div :.ui.field
            (dom/label  "Age: ")
