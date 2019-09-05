@@ -21,6 +21,14 @@
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
 
+;;;;;;;;;;;
+
+(defmutation make-older [{:person/keys [id]}]
+  #_(remote [env] true)                                     ;; env is simply a map
+  #_(rest [env] true)
+  (action [{:keys [state]}]
+          (swap! state update-in [:person/id id
+                                  :person/age] inc )))
 
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
 (defsc Person [this #_{:keys [:person/id :person/name :person/age :person/cars] :as props}
@@ -42,11 +50,13 @@
        (dom/div
          (dom/div "Name: " name)
          (dom/div "Age: " age)
+         (dom/button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
          (dom/h3 "Cars: ")
          (dom/ul (map ui-car cars))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
+;;;;;;;;;;;
 
 (defsc Sample [this {:root/keys [person]}]
        {:query         [{:root/person (comp/get-query Person)}]
@@ -62,12 +72,6 @@
 (defn ^:export init []
       (app/mount! APP Sample "app"))
 
-(defmutation make-older [{:person/keys [id]}]
-  #_(remote [env] true)                                     ;; env is simply a map
-  #_(rest [env] true)
-  (action [{:keys [state]}]
-          (swap! state update-in [:person/id id
-                                  :person/age] inc )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
