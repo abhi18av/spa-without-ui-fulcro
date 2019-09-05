@@ -47,10 +47,14 @@
                         :person/cars [{:id 0 :model "Feet"}
                                        {:id 1 :model "Wheel"}]}
         :ident         :person/id}
-       (dom/div
-         (dom/div "Name: " name)
-         (dom/div "Age: " age)
-         (dom/button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
+       (dom/div :.ui.form                                   ;; {:className "ui form"}
+         (dom/div :.ui.field {:style {:color "red"}}
+                  (dom/label  "Name: ")
+                  name)
+         (dom/div :.ui.field
+           (dom/label  "Age: ")
+           age)
+         (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
          (dom/h3 "Cars: ")
          (dom/ul (map ui-car cars))))
 
@@ -64,7 +68,7 @@
         #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
         :initial-state {:root/person {:id 1 :name "Adam"}}}
        (dom/div
-         (dom/div "Hello, World!")
+         #_(dom/div "Hello, World!")
          (dom/div (ui-person person))))
 
 (defonce APP (app/fulcro-app))
