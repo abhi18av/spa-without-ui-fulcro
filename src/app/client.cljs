@@ -7,11 +7,21 @@
             [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
 
-(defsc Person [this {:keys [:person/id :person/name] :as props}]
+(defsc Car [this {:car/keys [id model] :as props}]
        {}
-       (dom/div "Name: " name))
+       (dom/div "Model: " model))
+
+(def ui-car (comp/factory Car {:keyfn :car/id}))
+
+
+;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
+(defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
+       {}
+       (dom/div
+       (dom/div "Name: " name)
+       (dom/h3 "Cars: ")
+       (dom/ul (map ui-car cars))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
@@ -44,7 +54,9 @@
 (app/schedule-render! APP)
 
 (reset! (::app/state-atom APP) {:sample {:person/id 1
-                                         :person/name "Joe"}})
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id 22
+                                                        :car/model "Escort"}]}})
 
 
 )
