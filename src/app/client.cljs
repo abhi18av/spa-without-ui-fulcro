@@ -22,14 +22,21 @@
 
 
 ;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
-(defsc Person [this {:keys [:person/id :person/name :person/age :person/cars] :as props}]
-       {:query         [:person/id :person/name :person/age #_:person/cars {:person/cars (comp/get-query Car)}]
-        :initial-state (fn [{:keys [id name]}]
+(defsc Person [this #_{:keys [:person/id :person/name :person/age :person/cars] :as props}
+               {:person/keys [id name age cars] :as props}]
+       {:query         [:person/id :person/name :person/age #_:person/cars
+                        {:person/cars (comp/get-query Car)}]
+        #_:initial-state #_(fn [{:keys [id name]}]
                            {:person/id   id
                             :person/name name
                             :person/age  33
                             :person/cars [(comp/get-initial-state Car {:id 0 :model "Feet"})
                                           (comp/get-initial-state Car {:id 1 :model "Wheel"})]})
+        :initial-state {:person/id :param/id
+                        :person/name :param/name
+                        :person/age 33
+                        :person/cars [{:id 0 :model "Feet"}
+                                       {:id 1 :model "Wheel"}]}
         :ident         :person/id}
        (dom/div
          (dom/div "Name: " name)
