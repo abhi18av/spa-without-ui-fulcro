@@ -1,11 +1,21 @@
 (ns app.client
   (:require
+    ;; external libs
+    ["react-number-format" :as NumberFormat]
+    ;; internal libs
+    [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
     [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
     [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; NOTE all dom elements *always* take string - input and return output
+
+(def ui-number-format (interop/react-factory NumberFormat))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,6 +90,13 @@
                       (dom/div :.ui.field {:style {:color "red"}} ;; optional option map {} - but it makes things a bit performant - 3x speed up with options map by reducing the react overhead
                                (dom/label {:onClick onClick} "Name: ")
                                name)
+                      (dom/div :.ui.field {}
+                               (dom/label {} "Amount: ")
+                               ;; translated from the react-number-format examples
+                               ;; https://github.com/s-yadav/react-number-format#prefix-and-thousand-separator--format-currency-in-input
+                               (ui-number-format {:value "111111"
+                                                  :thousandSeparator true
+                                                  :prefix "$"}))
                       (dom/div :.ui.field {}
                                (dom/label {} "Age: ")
                                age)
