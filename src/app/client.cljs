@@ -94,7 +94,8 @@
 (comment
   (shadow/repl :main)
 
-  (.reload js/location true)                                ;; js hard reset
+  ;; js hard reset
+  (.reload js/location true)
 
   (::app/state-atom APP)
 
@@ -110,12 +111,34 @@
                                            :person/name "Joe"
                                            :person/cars [{:car/id    22
                                                           :car/model "Escort"}]}})
-  (merge/merge! APP Sample {:root/person {:person/id   18
-                                                    :person/name "Abhinav"
-                                                    :person/cars [{:car/id    0
-                                                                   :car/model "Walking"}
-                                                                  {:car/id    1
-                                                                   :car/model "Running"}]}})
+
+  ;; TODO understand how to merge directly to the app root
+  #_(merge/merge! APP Sample {:root/person {:person/id   18
+                                            :person/name "Abhinav"
+                                            :person/cars [{:car/id    0
+                                                           :car/model "Walking"}
+                                                          {:car/id    1
+                                                           :car/model "Running"}]}})
+
+  ;; Doesn't work on both as  the :cars table needs to be at the root level
+  (comp/get-ident Car {:car/id    24
+                       :car/model "Ferrari"
+                       :person/cars [{:car/id    24
+                                      :car/model "Ferrari"}]
+                       :person/id   3
+                       :person/age  45
+                       :person/name "Billy"})
+
+
+  (comp/get-ident Person {:person/id   3
+                          :person/age  45
+                          :person/name "Billy"
+                          :person/cars [{:car/id    24
+                                         :car/model "Ferrari"}]})
+
+
+
+  (app/schedule-render! APP {:force-root? true})
 
 
   (app/current-state APP)
@@ -153,7 +176,7 @@
 
                           :append [:person/id 3 :person/cars])
 
-
+;; use this on the root element to see the entire tree of query
   (comp/get-query Sample)
 
   (comp/get-initial-state Sample)
@@ -169,8 +192,8 @@
   (comp/get-ident Car {:car/id    22
                        :car/model "Ford"})
 
-  ;; by default return themselves as data
-  ;;  `(make-older ~{:a 1}) ;; fulcro2
+  ;; by default mutations return themselves as data
+  ;;  `(make-older ~{:a 1}) ;; fulcro2 alternate notation
   (make-older {:a 1})
 
   (reset! (::app/state-atom APP) {})
@@ -181,7 +204,7 @@
 
   (swap! (::app/state-atom APP) assoc-in [:person/id 1 :person/age] 22)
 
-  (swap! (::app/state-atom APP) update-in [:person/id id :person/age] inc)
+  (swap! (::app/state-atom APP) update-in [:person/id 3 :person/age] inc)
 
   ;; operate simply on Adam
   (comp/transact! APP [(make-older {:person/id 1})
