@@ -53,11 +53,18 @@
                        :person/cars [{:id 0 :model "Feet"}
                                      {:id 1 :model "Wheel"}]}
    :ident             :person/id
+
+   :some-random-data  "This is random data which can be added to any component because it's options map is open-ended"
    ;; NOTE react lifecycle methods ( should component is provided by default in fulcro3
    #_:shouldComponentUpdate #_(fn [this props state])
+
+   ;; NOTE for this lifecycle we need to pull the current component props
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "MOUNTED" p)))
+
+   ;; NOTE a constructor placeholder
+   ;; commonly used for callback functions
    :initLocalState    (fn [this props]
                         {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
@@ -94,7 +101,6 @@
 
 (defn ^:export init []
   (app/mount! APP Sample "app"))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -223,5 +229,7 @@
 
   ;; prints only the non-native keys in human readable form
   (comp/component-options Car)
+
+  (comp/component-options Person)
 
   )
