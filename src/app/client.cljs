@@ -62,16 +62,20 @@
                         {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
   (let [onClick (comp/get-state this :onClick)]
-    (dom/div :.ui.form                                      ;; {:className "ui form"}
-             (dom/div :.ui.field {:style {:color "red"}}
-                      (dom/label {:onClick onClick} "Name: ")
-                      name)
-             (dom/div :.ui.field
-                      (dom/label "Age: ")
-                      age)
-             (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
-             (dom/h3 "Cars: ")
-             (dom/ul (map ui-car cars)))))
+    (dom/div :.ui.segment
+             (dom/div :.ui.form                             ;; {:className "ui form"}
+                      ;; dom/div and others are actually adaptive macros/functions and their nature depends on their usage
+                      #_(dom/div :.ui.field)                ;; as a macro ;; evaluated at compile time
+                      #_(map dom/div ["Div1" "Div2"])       ;; as a function
+                      (dom/div :.ui.field {:style {:color "red"}} ;; optional option map {} - but it makes things a bit performant - 3x speed up with options map by reducing the react overhead
+                               (dom/label {:onClick onClick} "Name: ")
+                               name)
+                      (dom/div :.ui.field {}
+                               (dom/label {} "Age: ")
+                               age)
+                      (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
+                      (dom/h3 {} "Cars: ")
+                      (dom/ul {} (map ui-car cars))))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
@@ -84,7 +88,7 @@
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
    :initial-state {:root/person {:id 1 :name "Adam"}}}
   (dom/div
-      (dom/div (ui-person person))))
+    (dom/div (ui-person person))))
 
 (defonce APP (app/fulcro-app))
 
