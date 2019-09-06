@@ -93,6 +93,8 @@
 (comment
   (shadow/repl :main)
 
+  (.reload js/location true) ;; js hard reset
+
   (::app/state-atom APP)
 
   (keys APP)
@@ -151,10 +153,10 @@
   (app/current-state APP)
 
   (meta (comp/get-query Person))
+
   (comp/get-query Person)
 
   (comp/get-query Car)
-
 
   (comp/get-ident Car {:car/id    22
                        :car/model "Ford"})
