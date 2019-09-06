@@ -10,7 +10,8 @@
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
     [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
-    [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
+    [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]
+    [com.fulcrologic.fulcro.algorithms.denormalize :as fdn]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GENERAL NOTES
@@ -147,14 +148,23 @@
     (when people
       (dom/div (ui-person-list people)))))
 
+;; NOTE this is also called the ident-optimized render
 ;; NOTE can override the entire rendering system per-se like preact or other vdom diff libraries ( maybe incr_dom - jane street!)
 ;; keyframe/render! always runs the entire query
-(defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
+(defonce APP (app/fulcro-app #_{:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NOTE convenient function for experimenting later inside the comment
+(defn get-components-that-query-for-a-prop
+  [prop]
+  (reduce (fn [mounted-instances cls]
+            (concat mounted-instances
+                    (comp/class->all APP (comp/registry-key->class cls))))
+          []
+          (comp/prop->classes APP prop)))
 
 (comment
   (shadow/repl :main)
@@ -283,7 +293,39 @@
 
   (comp/component-options Person)
 
-;; TODO BUG - always re-rendered even before adding :shouldComponentUpdate
+;; TODO BUG - always re-rendered even before adding :shouldComponentUpdate to all components
   (comp/transact! APP [(make-older {:person/id 2})])
+
+  (comp/class->all APP Person)
+
+  (comp/class->any APP Person)
+
+  ;;NOTE we can get the components which query for any particular piece of data
+  (comp/prop->classes APP :person/age)
+
+  (map
+    comp/get-ident
+    (get-components-that-query-for-a-prop :person/id))
+
+
+
+  (let [state (app/current-state APP)
+        component-query (comp/get-query Person)
+        component-ident [:person/id 1]
+        starting-entity (get-in state component-ident)]
+    (fdn/db->tree component-query starting-entity state))
+
+
+
+  (def before-mutation (app/current-state APP))
+
+  (comp/transact! APP [(make-older {:person/id 2})])
+
+  (def after-mutation (app/current-state APP))
+
+  before-mutation
+  after-mutation
+
+
 
   )
