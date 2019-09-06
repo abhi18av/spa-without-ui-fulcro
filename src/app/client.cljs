@@ -52,7 +52,9 @@
                        :person/age  33
                        :person/cars [{:id 0 :model "Feet"}
                                      {:id 1 :model "Wheel"}]}
-   :ident             :person/id
+
+   ;; as soon as we move to a 2-vector form in :ident it re-normalizes to a new table in fulcro app db into a to-many relationship with :people/id
+   :ident             :person/id #_[:people :person/id]
 
    :some-random-data  "This is random data which can be added to any component because it's options map is open-ended"
    ;; NOTE react lifecycle methods ( should component is provided by default in fulcro3
@@ -63,8 +65,9 @@
                         (let [p (comp/props this)]
                           (js/console.log "MOUNTED" p)))
 
-   ;; NOTE a constructor placeholder
+   ;; NOTE a constructor placeholder for a component-ONLY props - doesn't reflect in the fulcro app DB
    ;; commonly used for callback functions
+   ;; and for avoiding re-definitions for functions and trigger multiple renders - which can happen a lot inside the let bindings
    :initLocalState    (fn [this props]
                         {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
@@ -88,14 +91,29 @@
 
 ;;;;;;;;;;;
 
-(defsc Sample [this {:root/keys [person]}]
-  {:query         [{:root/person (comp/get-query Person)}]
+(defsc PersonList [this {:person-list/keys [people] :as props}]
+  {:query         [{:person-list/people (comp/get-query Person)}]
+   ;; singleton ident for a component
+   :ident         (fn [_ _] [:component/id ::person-list])  #_:person-list/people
+   :initial-state {:person-list/people [{:id 1 :name "Bob"}
+                                        {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
+  (dom/div
+    (dom/h3 "People")
+    (map ui-person people)))
+
+(def ui-person-list (comp/factory PersonList {:keyfn :person-list/people}))
+
+;;;;;;;;;;;
+
+(defsc Sample [this {:root/keys [people]}]
+  {:query         [{:root/people (comp/get-query PersonList)}]
    ;; NOTE root does NOT need an :ident
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
-   :initial-state {:root/person {:id 1 :name "Adam"}}}
+   :initial-state {:root/people {}}}
   (dom/div
-    (dom/div (ui-person person))))
+    (when people
+      (dom/div (ui-person-list people)))))
 
 (defonce APP (app/fulcro-app))
 
