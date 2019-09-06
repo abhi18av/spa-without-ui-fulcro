@@ -94,7 +94,7 @@
 (comment
   (shadow/repl :main)
 
-  (.reload js/location true) ;; js hard reset
+  (.reload js/location true)                                ;; js hard reset
 
   (::app/state-atom APP)
 
@@ -110,6 +110,13 @@
                                            :person/name "Joe"
                                            :person/cars [{:car/id    22
                                                           :car/model "Escort"}]}})
+  (merge/merge! APP Sample {:root/person {:person/id   18
+                                                    :person/name "Abhinav"
+                                                    :person/cars [{:car/id    0
+                                                                   :car/model "Walking"}
+                                                                  {:car/id    1
+                                                                   :car/model "Running"}]}})
+
 
   (app/current-state APP)
 
