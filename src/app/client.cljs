@@ -111,7 +111,8 @@
                       (dom/div :.ui.field {}
                                (dom/label {} "Age: ")
                                age)
-                      (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})])} "make-older")
+                      (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})]
+                                                                                        {:refresh [:person-list/people]})} "make-older")
                       (dom/h3 {} "Cars: ")
                       (dom/ul {} (map ui-car cars))))))
 
@@ -129,18 +130,19 @@
                                         {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
   (js/console.log "Render Person List")
   (let [cnt (reduce
-              (fn [cnt {:person/keys [age]}]
+              (fn [c {:person/keys [age]}]
                 (if (> age 30)
-                  (inc cnt)
-                  cnt))
+                  (inc c)
+                  c))
               0
               people)]
-  (dom/div :.ui.segment
-           (dom/h3 :.ui.header "People")
-           (dom/div :.ui.segment "People over 30: ")
-           (map ui-person people))))
+    (dom/div :.ui.segment
+             (dom/h3 :.ui.header "People")
+             (dom/div :.ui.segment "People over 30: " cnt)
+             (map ui-person people))))
 
 (def ui-person-list (comp/factory PersonList {:keyfn :person-list/people}))
+
 
 ;;;;;;;;;;;
 
