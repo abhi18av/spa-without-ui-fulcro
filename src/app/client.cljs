@@ -75,6 +75,7 @@
 
 (defsc Sample [this {:root/keys [person]}]
   {:query         [{:root/person (comp/get-query Person)}]
+   ;; NOTE root does NOT need an :ident
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
    :initial-state {:root/person {:id 1 :name "Adam"}}}
