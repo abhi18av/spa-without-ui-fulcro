@@ -27,15 +27,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defsc Car [this {:car/keys [id model] :as props}]
-  {:query            [:car/id :car/model]
+  {:query                 [:car/id :car/model]
    #_#_:initial-state (fn [{:keys [id model]}]
                         {:car/id    id
                          :car/model model})
-   :initial-state    {:car/id    :param/id
-                      :car/model :param/model}
-   :ident            :car/id
+   :initial-state         {:car/id    :param/id
+                           :car/model :param/model}
+   :ident                 :car/id
+   :shouldComponentUpdate (fn [] true)
    ;; NOTE optional elements within a component
-   :some-random-data "random data"}
+   :some-random-data      "random data"}
   (js/console.log "Render Car" id)
   (dom/div "Model: " model))
 
@@ -56,37 +57,38 @@
 (defsc Person [this #_{:keys [:person/id :person/name :person/age :person/cars] :as props}
                {:person/keys [id name age cars] :as props}]
 
-  {:query             [:person/id :person/name :person/age #_:person/cars
-                       {:person/cars (comp/get-query Car)}]
+  {:query                 [:person/id :person/name :person/age #_:person/cars
+                           {:person/cars (comp/get-query Car)}]
    #_:initial-state #_(fn [{:keys [id name]}]
                         {:person/id   id
                          :person/name name
                          :person/age  33
                          :person/cars [(comp/get-initial-state Car {:id 0 :model "Feet"})
                                        (comp/get-initial-state Car {:id 1 :model "Wheel"})]})
-   :initial-state     {:person/id   :param/id
-                       :person/name :param/name
-                       :person/age  33
-                       :person/cars [{:id 0 :model "Feet"}
-                                     {:id 1 :model "Wheel"}]}
+   :initial-state         {:person/id   :param/id
+                           :person/name :param/name
+                           :person/age  33
+                           :person/cars [{:id 0 :model "Feet"}
+                                         {:id 1 :model "Wheel"}]}
 
    ;; as soon as we move to a 2-vector form in :ident it re-normalizes to a new table in fulcro app db into a to-many relationship with :people/id
-   :ident             :person/id #_[:people :person/id]
+   :ident                 :person/id #_[:people :person/id]
 
-   :some-random-data  "This is random data which can be added to any component because it's options map is open-ended"
+   :some-random-data      "This is random data which can be added to any component because it's options map is open-ended"
    ;; NOTE react lifecycle methods ( should component is provided by default in fulcro3
    #_:shouldComponentUpdate #_(fn [this props state])
 
+   :shouldComponentUpdate (fn [] true)
    ;; NOTE for this lifecycle we need to pull the current component props
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          #_(js/console.log "MOUNTED" p)))
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              #_(js/console.log "MOUNTED" p)))
 
    ;; NOTE a constructor placeholder for a component-ONLY props - doesn't reflect in the fulcro app DB
    ;; commonly used for callback functions
    ;; and for avoiding re-definitions for functions and trigger multiple renders - which can happen a lot inside the let bindings
-   :initLocalState    (fn [this props]
-                        {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
+   :initLocalState        (fn [this props]
+                            {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
   (let [onClick (comp/get-state this :onClick)]
     (js/console.log "Render Person" id)
@@ -102,9 +104,9 @@
                                (dom/label {} "Amount: ")
                                ;; translated from the react-number-format examples
                                ;; https://github.com/s-yadav/react-number-format#prefix-and-thousand-separator--format-currency-in-input
-                               (ui-number-format {:value "111111"
+                               (ui-number-format {:value             "111111"
                                                   :thousandSeparator true
-                                                  :prefix "$"}))
+                                                  :prefix            "$"}))
                       (dom/div :.ui.field {}
                                (dom/label {} "Age: ")
                                age)
@@ -117,11 +119,13 @@
 ;;;;;;;;;;;
 
 (defsc PersonList [this {:person-list/keys [people] :as props}]
-  {:query         [{:person-list/people (comp/get-query Person)}]
+  {:query                 [{:person-list/people (comp/get-query Person)}]
+
+   :shouldComponentUpdate (fn [] true)
    ;; singleton ident for a component
-   :ident         (fn [_ _] [:component/id ::person-list])  #_:person-list/people
-   :initial-state {:person-list/people [{:id 1 :name "Bob"}
-                                        {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
+   :ident                 (fn [_ _] [:component/id ::person-list])  #_:person-list/people
+   :initial-state         {:person-list/people [{:id 1 :name "Bob"}
+                                                {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
   (js/console.log "Render Person List")
   (dom/div
     (dom/h3 "People")
@@ -132,16 +136,18 @@
 ;;;;;;;;;;;
 
 (defsc Root [this {:root/keys [people]}]
-  {:query         [{:root/people (comp/get-query PersonList)}]
+  {:query                 [{:root/people (comp/get-query PersonList)}]
+   :shouldComponentUpdate (fn [] true)
    ;; NOTE root does NOT need an :ident
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
-   :initial-state {:root/people {}}}
+   :initial-state         {:root/people {}}}
   (js/console.log "Render Root")
   (dom/div
     (when people
       (dom/div (ui-person-list people)))))
 
+;; NOTE can override the entire rendering system per-se like preact or other vdom diff libraries ( maybe incr_dom - jane street!)
 ;; keyframe/render! always runs the entire query
 (defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
 
@@ -277,7 +283,7 @@
 
   (comp/component-options Person)
 
-
-  (comp/transact! APP [(make-older {:person/id 1})])
+;; TODO BUG - always re-rendered even before adding :shouldComponentUpdate
+  (comp/transact! APP [(make-older {:person/id 2})])
 
   )
