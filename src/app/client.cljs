@@ -12,9 +12,11 @@
 
 (defsc Car [this {:car/keys [id model] :as props}]
   {:query            [:car/id :car/model]
-   :initial-state    (fn [{:keys [id model]}]
-                       {:car/id    id
-                        :car/model model})
+   #_#_:initial-state (fn [{:keys [id model]}]
+                        {:car/id    id
+                         :car/model model})
+   :initial-state    {:car/id    :param/id
+                      :car/model :param/model}
    :ident            :car/id
    ;; NOTE optional elements within a component
    :some-random-data "random data"}
@@ -25,9 +27,11 @@
 ;;;;;;;;;;;
 
 (defmutation make-older [{:person/keys [id]}]
-  #_(remote [env] true)                                     ;; env is simply a map
+  ;; NOTE env is simply a map
+  #_(remote [env] true)
   #_(rest [env] true)
   (action [{:keys [state]}]
+          #_(js/console.log state)
           (swap! state update-in [:person/id id
                                   :person/age] inc)))
 
@@ -79,7 +83,7 @@
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
    :initial-state {:root/person {:id 1 :name "Adam"}}}
-  #_(dom/div
+  (dom/div
       (dom/div (ui-person person))))
 
 (defonce APP (app/fulcro-app))
@@ -121,8 +125,8 @@
                                                            :car/model "Running"}]}})
 
   ;; Doesn't work on both as  the :cars table needs to be at the root level
-  (comp/get-ident Car {:car/id    24
-                       :car/model "Ferrari"
+  (comp/get-ident Car {:car/id      24
+                       :car/model   "Ferrari"
                        :person/cars [{:car/id    24
                                       :car/model "Ferrari"}]
                        :person/id   3
@@ -176,7 +180,7 @@
 
                           :append [:person/id 3 :person/cars])
 
-;; use this on the root element to see the entire tree of query
+  ;; use this on the root element to see the entire tree of query
   (comp/get-query Sample)
 
   (comp/get-initial-state Sample)
@@ -209,9 +213,11 @@
   ;; operate simply on Adam
   (comp/transact! APP [(make-older {:person/id 1})
                        ;; other mutations
+                       ;; ()
+                       ;; ()
                        ])
 
-
+  ;; prints only the non-native keys in human readable form
   (comp/component-options Car)
 
   )
