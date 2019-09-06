@@ -4,6 +4,7 @@
     ["react-number-format" :as NumberFormat]
     ;; internal libs
     [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
+    [com.fulcrologic.fulcro.rendering.keyframe-render :as keyframe]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
@@ -12,11 +13,16 @@
     [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; GENERAL NOTES
 ;; NOTE all dom elements *always* take string - input and return output
 
-(def ui-number-format (interop/react-factory NumberFormat))
+;; optimizations in react and fulcro can be done in 3 ways
+;; 1. reduce the number of queries we need to run
+;; 2. output of factories (VDOM) (reduce the number that need to run)
+;; 3. react dom diff - specify stable keys
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(def ui-number-format (interop/react-factory NumberFormat))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -30,6 +36,7 @@
    :ident            :car/id
    ;; NOTE optional elements within a component
    :some-random-data "random data"}
+  (js/console.log "Render Car")
   (dom/div "Model: " model))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
@@ -82,6 +89,7 @@
                         {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
   (let [onClick (comp/get-state this :onClick)]
+    (js/console.log "Render Person")
     (dom/div :.ui.segment
              (dom/div :.ui.form                             ;; {:className "ui form"}
                       ;; dom/div and others are actually adaptive macros/functions and their nature depends on their usage
@@ -114,6 +122,7 @@
    :ident         (fn [_ _] [:component/id ::person-list])  #_:person-list/people
    :initial-state {:person-list/people [{:id 1 :name "Bob"}
                                         {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
+  (js/console.log "Render Person List")
   (dom/div
     (dom/h3 "People")
     (map ui-person people)))
@@ -128,11 +137,13 @@
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
    :initial-state {:root/people {}}}
+  (js/console.log "Render Sample")
   (dom/div
     (when people
       (dom/div (ui-person-list people)))))
 
-(defonce APP (app/fulcro-app))
+;; keyframe/render! always runs the entire query
+(defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
   (app/mount! APP Sample "app"))
