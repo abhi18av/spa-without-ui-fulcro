@@ -36,7 +36,7 @@
    :ident            :car/id
    ;; NOTE optional elements within a component
    :some-random-data "random data"}
-  (js/console.log "Render Car")
+  (js/console.log "Render Car" id)
   (dom/div "Model: " model))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
@@ -80,7 +80,7 @@
    ;; NOTE for this lifecycle we need to pull the current component props
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (js/console.log "MOUNTED" p)))
+                          #_(js/console.log "MOUNTED" p)))
 
    ;; NOTE a constructor placeholder for a component-ONLY props - doesn't reflect in the fulcro app DB
    ;; commonly used for callback functions
@@ -89,7 +89,7 @@
                         {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
 
   (let [onClick (comp/get-state this :onClick)]
-    (js/console.log "Render Person")
+    (js/console.log "Render Person" id)
     (dom/div :.ui.segment
              (dom/div :.ui.form                             ;; {:className "ui form"}
                       ;; dom/div and others are actually adaptive macros/functions and their nature depends on their usage
@@ -131,13 +131,13 @@
 
 ;;;;;;;;;;;
 
-(defsc Sample [this {:root/keys [people]}]
+(defsc Root [this {:root/keys [people]}]
   {:query         [{:root/people (comp/get-query PersonList)}]
    ;; NOTE root does NOT need an :ident
    ;; NOTE alternate notation for expressing initial-state
    #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
    :initial-state {:root/people {}}}
-  (js/console.log "Render Sample")
+  (js/console.log "Render Root")
   (dom/div
     (when people
       (dom/div (ui-person-list people)))))
@@ -146,8 +146,7 @@
 (defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
-  (app/mount! APP Sample "app"))
-
+  (app/mount! APP Root "app"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -277,5 +276,8 @@
   (comp/component-options Car)
 
   (comp/component-options Person)
+
+
+  (comp/transact! APP [(make-older {:person/id 1})])
 
   )
