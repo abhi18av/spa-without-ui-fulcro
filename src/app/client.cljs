@@ -14,121 +14,75 @@
     [com.fulcrologic.fulcro.algorithms.denormalize :as fdn]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; GENERAL NOTES
-;; NOTE all dom elements *always* take string - input and return output
-
-;; optimizations in react and fulcro can be done in 3 ways
-;; 1. reduce the number of queries we need to run
-;; 2. output of factories (VDOM) (reduce the number that need to run)
-;; 3. react dom diff - specify stable keys
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (def ui-number-format (interop/react-factory NumberFormat))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defsc Car [this {:car/keys [id model] :as props}]
   {:query            [:car/id :car/model]
-   #_#_:initial-state (fn [{:keys [id model]}]
-                        {:car/id    id
-                         :car/model model})
+
    :initial-state    {:car/id    :param/id
                       :car/model :param/model}
+
    :ident            :car/id
-   #_#_:shouldComponentUpdate (fn [] true)
-   ;; NOTE optional elements within a component
+
    :some-random-data "random data"}
   (js/console.log "Render Car" id)
-  (dom/div "Model: " model))
+  (dom/div))
 
 (def ui-car (comp/factory Car {:keyfn :car/id}))
 
 ;;;;;;;;;;;
 
 (defmutation make-older [{:person/keys [id]}]
-  ;; NOTE env is simply a map
-  #_(remote [env] true)
-  #_(rest [env] true)
   (action [{:keys [state]}]
-          #_(js/console.log state)
+          (js/console.log state)
           (swap! state update-in [:person/id id
                                   :person/age] inc)))
 
-;; NOTE:  {:keys [:person/name]} AND  {:person/keys [name]} are equivalent
-(defsc Person [this #_{:keys [:person/id :person/name :person/age :person/cars] :as props}
-               {:person/keys [id name age cars] :as props}]
+(defsc Person [this {:person/keys [id name age cars] :as props}]
 
-  {:query             [:person/id :person/name :person/age #_:person/cars
-                       {:person/cars (comp/get-query Car)}]
-   #_:initial-state #_(fn [{:keys [id name]}]
-                        {:person/id   id
-                         :person/name name
-                         :person/age  33
-                         :person/cars [(comp/get-initial-state Car {:id 0 :model "Feet"})
-                                       (comp/get-initial-state Car {:id 1 :model "Wheel"})]})
-   :initial-state     {:person/id   :param/id
-                       :person/name :param/name
-                       :person/age  28
-                       :person/cars [{:id 0 :model "Feet"}
-                                     {:id 1 :model "Wheel"}]}
+  {:query                 [:person/id :person/name :person/age
+                           {:person/cars (comp/get-query Car)}]
 
-   ;; as soon as we move to a 2-vector form in :ident it re-normalizes to a new table in fulcro app db into a to-many relationship with :people/id
-   :ident             :person/id #_[:people :person/id]
+   :initial-state         {:person/id   :param/id
+                           :person/name :param/name
+                           :person/age  28
+                           :person/cars [{:id 0 :model "Feet"}
+                                         {:id 1 :model "Wheel"}]}
 
-   :some-random-data  "This is random data which can be added to any component because it's options map is open-ended"
-   ;; NOTE react lifecycle methods ( should component is provided by default in fulcro3
-   #_:shouldComponentUpdate #_(fn [this props state])
+   :ident                 :person/id
 
-   #_#_:shouldComponentUpdate (fn [] true)
-   ;; NOTE for this lifecycle we need to pull the current component props
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          #_(js/console.log "MOUNTED" p)))
+   :some-random-data      "This is random data which can be added to any component because it's options map is open-ended"
 
-   ;; NOTE a constructor placeholder for a component-ONLY props - doesn't reflect in the fulcro app DB
-   ;; commonly used for callback functions
-   ;; and for avoiding re-definitions for functions and trigger multiple renders - which can happen a lot inside the let bindings
-   :initLocalState    (fn [this props]
-                        {:onClick (fn [evt] (js/console.log "Clicked on Name in Person Component"))})}
+   :shouldComponentUpdate (fn [] true)
+
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              (js/console.log "[Person] MOUNTED" p)))}
 
   (let [onClick (comp/get-state this :onClick)]
-    (js/console.log "Render Person" id)
-    (dom/div :.ui.segment
-             (dom/div :.ui.form                             ;; {:className "ui form"}
-                      ;; dom/div and others are actually adaptive macros/functions and their nature depends on their usage
-                      #_(dom/div :.ui.field)                ;; as a macro ;; evaluated at compile time
-                      #_(map dom/div ["Div1" "Div2"])       ;; as a function
-                      (dom/div :.ui.field #_{:style {:color "red"}} ;; optional option map {} - but it makes things a bit performant - 3x speed up with options map by reducing the react overhead
-                               (dom/label {:onClick onClick} "Name: ")
-                               name)
-                      (dom/div :.ui.field {}
-                               (dom/label {} "Amount: ")
-                               ;; translated from the react-number-format examples
-                               ;; https://github.com/s-yadav/react-number-format#prefix-and-thousand-separator--format-currency-in-input
-                               (ui-number-format {:value             "111111"
-                                                  :thousandSeparator true
-                                                  :prefix            "$"}))
-                      (dom/div :.ui.field {}
-                               (dom/label {} "Age: ")
-                               age)
-                      (dom/button :.ui.positive.basic.button {:onClick #(comp/transact! this [(make-older {:person/id id})]
-                                                                                        {:refresh [:person-list/people]})} "make-older")
-                      (dom/h3 {} "Cars: ")
-                      (dom/ul {} (map ui-car cars))))))
+    (dom/div
+      (map ui-car cars))
+    (comment
+      (comp/transact! this [(make-older {:person/id id})]
+                      {:refresh [:person-list/people]}))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
 ;;;;;;;;;;;
 
 (defsc PersonList [this {:person-list/keys [people] :as props}]
-  {:query         [{:person-list/people (comp/get-query Person)}]
+  {:query             [{:person-list/people (comp/get-query Person)}]
 
-   #_#_:shouldComponentUpdate (fn [] true)
-   ;; singleton ident for a component
-   :ident         (fn [_ _] [:component/id ::person-list])  #_:person-list/people
-   :initial-state {:person-list/people [{:id 1 :name "Bob"}
-                                        {:id 2 :name "Sally"}]}} ;; will get the initial state from a join to Person
-  (js/console.log "Render Person List")
+   :ident             (fn [_ _] [:component/id ::person-list])
+   :initial-state     {:person-list/people [{:id 1 :name "Bob"}
+                                            {:id 2 :name "Sally"}]}
+
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (js/console.log "[PersonList] MOUNTED" p)))}
+
   (let [cnt (reduce
               (fn [c {:person/keys [age]}]
                 (if (> age 30)
@@ -136,10 +90,8 @@
                   c))
               0
               people)]
-    (dom/div :.ui.segment
-             (dom/h3 :.ui.header "People")
-             (dom/div :.ui.segment "People over 30: " cnt)
-             (map ui-person people))))
+    (dom/div
+      (map ui-person people))))
 
 (def ui-person-list (comp/factory PersonList {:keyfn :person-list/people}))
 
@@ -147,28 +99,21 @@
 ;;;;;;;;;;;
 
 (defsc Root [this {:root/keys [people]}]
-  {:query         [{:root/people (comp/get-query PersonList)}]
-   #_#_:shouldComponentUpdate (fn [] true)
-   ;; NOTE root does NOT need an :ident
-   ;; NOTE alternate notation for expressing initial-state
-   #_:initial-state #_(fn [_] {:root/person (comp/get-initial-state Person {:id 1 :name "Adam"})})
-   :initial-state {:root/people {}}}
-  (js/console.log "Render Root")
-  (dom/h1 :.ui.header "Application Root"
-          (dom/br)
-          (when people
-            (dom/div :.ui.segment (ui-person-list people)))))
+  {:query             [{:root/people (comp/get-query PersonList)}]
+   :initial-state     {:root/people {}}
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (js/console.log "[Root] MOUNTED" p)))}
+  (dom/div
+    (ui-person-list people)))
 
-;; NOTE this is also called the ident-optimized render
-;; NOTE can override the entire rendering system per-se like preact or other vdom diff libraries ( maybe incr_dom - jane street!)
-;; keyframe/render! always runs the entire query
-(defonce APP (app/fulcro-app #_{:optimized-render! keyframe/render!}))
+(defonce APP (app/fulcro-app))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOTE convenient function for experimenting later inside the comment
+
 (defn get-components-that-query-for-a-prop
   [prop]
   (reduce (fn [mounted-instances cls]
