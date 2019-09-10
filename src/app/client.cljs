@@ -93,7 +93,8 @@
     (dom/div
       (map ui-person people))))
 
-(def ui-person-list (comp/factory PersonList {:keyfn :person-list/people}))
+(def ui-person-list
+  (comp/factory PersonList {:keyfn :person-list/people}))
 
 
 ;;;;;;;;;;;
@@ -130,13 +131,24 @@
   ;; js hard reset
   (.reload js/location true)
 
-  (::app/state-atom APP)
-
-  (keys APP)
+  ;;======
 
   (-> APP
       (::app/state-atom)
       deref)
+
+  (::app/state-atom APP)
+
+  (keys APP)
+
+  (::app/algorithms APP)
+  (:com.fulcrologic.fulcro.application/runtime-atom APP)
+  (:com.fulcrologic.fulcro.application/config APP)
+
+
+
+  ;;======
+
 
   (app/schedule-render! APP)
 
@@ -184,23 +196,22 @@
 
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 22)
 
-  (merge/merge-component! APP Person {:person/id   1
+  (merge/merge-component! APP Person {:person/id   9
                                       :person/name "Joe"
                                       :person/cars [{:car/id    22
                                                      :car/model "Ford"}]})
 
-  (merge/merge-component! APP Person {:person/id   2
+  (merge/merge-component! APP Person {:person/id   10
                                       :person/name "Sally"
                                       :person/cars [{:car/id    23
                                                      :car/model "BMW"}]})
 
-  (merge/merge-component! APP Person {:person/id   3
+  (merge/merge-component! APP Person {:person/id   11
                                       :person/age  45
                                       :person/name "Billy"
                                       :person/cars [{:car/id    24
                                                      :car/model "Ferrari"}]}
                           :replace [:root/person])
-
 
 
   (merge/merge-component! APP Car {:car/id    20
@@ -212,16 +223,17 @@
 
                           :append [:person/id 3 :person/cars])
 
-  ;; use this on the root element to see the entire tree of query
-  (comp/get-query Sample)
 
-  (comp/get-initial-state Sample)
+  (get-in ::app/state-atom)
+
+  ;; use this on the root element to see the entire tree of query
+  (comp/get-query APP)
+
+  (comp/get-initial-state APP)
 
   (app/current-state APP)
 
   (meta (comp/get-query Person))
-
-  (comp/get-query Person)
 
   (comp/get-query Car)
 
@@ -299,28 +311,45 @@
   ;;============= f.application ========
 
 
-  abort!
-  app-root
-  basis-t
-  current-state
-  default-global-eql-transform
-  default-remote-error?
-  default-tx!
-  force-root-render!
-  fulcro-app
-  fulcro-app?
-  initialize-state!
-  mount!
+  (app/abort!)
+
+  (app/app-root APP)
+
+  (app/basis-t)
+  (app/current-state)
+  (app/default-global-eql-transform)
+  (app/default-remote-error?)
+
+  (app/default-tx!)
+
+  (app/force-root-render! APP)
+
+  (app/fulcro-app)
+  (app/fulcro-app?)
+  (app/initialize-state!)
+  (app/mount!)
+
+  (app/mount! APP Root "app")
 
   (app/mounted? APP)
 
-  render!
-  root-class
-  root-props-changed?
-  schedule-render!
-  set-root!
-  tick!
-  update-shared!
+  ;; does not exist
+  ;;(app/render!)
+
+  (app/root-class)
+
+
+  (app/root-props-changed?)
+
+
+  (app/schedule-render! APP)
+  (app/set-root!)
+  (app/tick!)
+  (app/update-shared!)
+
+
+
+  ;;============= f.merge ========
 
   )
 
