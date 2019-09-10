@@ -136,16 +136,17 @@
   ;; js hard reset
   (.reload js/location true)
 
+  (app/schedule-render! APP {:force-root? true})
+
   ;;====== APP state atom ======
 
   (-> APP
       (::app/state-atom)
       deref)
 
-  (::app/state-atom APP)
-
   (keys APP)
 
+  (::app/state-atom APP)
   (::app/algorithms APP)
   (:com.fulcrologic.fulcro.application/runtime-atom APP)
   (:com.fulcrologic.fulcro.application/config APP)
@@ -188,13 +189,11 @@
                                          :car/model "Ferrari"}]})
 
 
-  (app/schedule-render! APP {:force-root? true})
 
 
   (app/current-state APP)
 
   (reset! (::app/state-atom APP) {})
-
 
 
   (reset! (::app/state-atom APP) {:fulcro.inspect.core/app-uuid #uuid"da484b5a-4c0b-41a2-96e3-0c82f667505b",
@@ -206,19 +205,15 @@
                                   :component/id                 {:app.client/person-list {:person-list/people [[:person/id 1] [:person/id 2] [:person/id 9]]}}})
 
 
-
-
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 22)
+
+
+  (get-in (deref (::app/state-atom APP)) [:person/id 9 :person/age] "Nope")
 
   (merge/merge-component! APP Person {:person/id   9
                                       :person/name "Joe"
                                       :person/cars [{:car/id    22
                                                      :car/model "Ford"}]})
-
-  (merge/merge-component! APP Person {:person/id   10
-                                      :person/name "Sally"
-                                      :person/cars [{:car/id    23
-                                                     :car/model "BMW"}]})
 
   (merge/merge-component! APP Person {:person/id   11
                                       :person/age  45
@@ -238,8 +233,6 @@
                           :append [:person/id 3 :person/cars])
 
 
-  (get-in ::app/state-atom)
-
   ;; use this on the root element to see the entire tree of query
   (comp/get-query APP)
 
@@ -248,8 +241,6 @@
   (app/current-state APP)
 
   (meta (comp/get-query Person))
-
-  (comp/get-query Car)
 
   (comp/get-ident Car {:car/id    22
                        :car/model "Ford"})
