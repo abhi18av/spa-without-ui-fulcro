@@ -53,7 +53,7 @@
 
    :ident                 :person/id
 
-   :some-random-data      "This is random data which can be added to any component because it's options map is open-ended"
+   :some-random-data      "open-ended keys in options map"
 
    :shouldComponentUpdate (fn [] true)
 
@@ -113,6 +113,8 @@
   (app/mount! APP Root "app"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COMMENTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-components-that-query-for-a-prop
   [prop]
@@ -160,6 +162,9 @@
                        :person/age  45
                        :person/name "Billy"})
 
+
+  ;; TODO figure this out
+  (comp/children PersonList)
 
   (comp/get-ident Person {:person/id   3
                           :person/age  45
@@ -283,3 +288,39 @@
   after-mutation
 
   )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;============ FULCRO API ============
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(comment
+
+  ;;============= f.application ========
+
+
+  abort!
+  app-root
+  basis-t
+  current-state
+  default-global-eql-transform
+  default-remote-error?
+  default-tx!
+  force-root-render!
+  fulcro-app
+  fulcro-app?
+  initialize-state!
+  mount!
+
+  (app/mounted? APP)
+
+  render!
+  root-class
+  root-props-changed?
+  schedule-render!
+  set-root!
+  tick!
+  update-shared!
+
+  )
+
