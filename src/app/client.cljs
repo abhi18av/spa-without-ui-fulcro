@@ -126,12 +126,16 @@
           (comp/prop->classes APP prop)))
 
 (comment
+
+
+  ;;====== REPL utils ======
+
   (shadow/repl :main)
 
   ;; js hard reset
   (.reload js/location true)
 
-  ;;======
+  ;;====== APP state atom ======
 
   (-> APP
       (::app/state-atom)
@@ -147,7 +151,7 @@
 
 
 
-  ;;======
+  ;;====== Merge data with the app db ======
 
 
   (app/schedule-render! APP)
@@ -183,7 +187,6 @@
                           :person/name "Billy"
                           :person/cars [{:car/id    24
                                          :car/model "Ferrari"}]})
-
 
 
   (app/schedule-render! APP {:force-root? true})
@@ -308,6 +311,10 @@
 
 (comment
 
+  ;;============= UTILS ========
+
+  (clojure.repl/dir com.fulcrologic.fulcro.components)
+
   ;;============= f.application ========
 
 
@@ -351,5 +358,88 @@
 
   ;;============= f.merge ========
 
-  )
 
+
+  ;;============= f.components ========
+
+  ;comp/*app*
+  ;comp/*blindly-render*
+  ;comp/*depth*
+  ;comp/*parent*
+  ;comp/*query-state*
+  ;comp/*shared*
+
+  (comp/any->app APP)
+  ;; TODO
+  (comp/children)
+
+  (comp/class->all)
+  (comp/class->any)
+  (comp/class->registry-key)
+  (comp/component->state-map)
+  (comp/component-class?)
+  (comp/component-instance?)
+  (comp/component-name Car)
+  (comp/component-options Car)
+  (comp/compressible-transact!)
+  (comp/computed)
+  (comp/computed-factory)
+  (comp/computed-initial-state?)
+  (comp/configure-component!)
+  (comp/defsc)
+  (comp/denormalize-query)
+  (comp/depth)
+  (comp/factory)
+  (comp/force-children)
+  (comp/fragment)
+  (comp/get-computed)
+  (comp/get-extra-props)
+  (comp/get-ident Car {:car/id    22
+                       :car/model "Ford"})
+
+  (comp/get-indexes)
+  (comp/get-initial-state Person)
+  (comp/get-query)
+  (comp/get-query-by-id)
+  (comp/get-raw-react-prop)
+  (comp/get-state Person)
+  (comp/has-feature?)
+  (comp/has-ident?)
+  (comp/has-initial-app-state?)
+  (comp/has-pre-merge?)
+  (comp/has-query?)
+  (comp/ident)
+  (comp/ident->any)
+  (comp/ident->components)
+  (comp/initial-state)
+  (comp/is-factory?)
+  (comp/isoget)
+  (comp/isoget-in)
+  (comp/link-element)
+  (comp/link-query)
+  (comp/make-state-map)
+  (comp/mounted?)
+  (comp/newer-props)
+  (comp/normalize-query)
+  (comp/normalize-query-elements)
+  (comp/pre-merge)
+  (comp/prop->classes)
+  (comp/props)
+  (comp/ptransact!)
+  (comp/query)
+  (comp/query-id)
+  (comp/raw->newest-props)
+  (comp/react-type)
+  (comp/register-component!)
+  (comp/registry-key->class)
+  (comp/set-query!)
+  (comp/set-query*)
+  (comp/set-state!)
+  (comp/shared)
+  (comp/transact!)
+  (comp/update-state!)
+  (comp/with-parent-context)
+  (comp/wrap-update-extra-props)
+  (comp/wrapped-render)
+
+  )
