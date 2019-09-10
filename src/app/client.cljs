@@ -106,6 +106,7 @@
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
   (dom/div
+    (dom/div "Hello, Fulcro!")
     (ui-person-list people)))
 
 (defonce APP (app/fulcro-app))
@@ -154,8 +155,6 @@
   ;;====== Merge data with the app db ======
 
 
-  (app/schedule-render! APP)
-
   (reset! (::app/state-atom APP) {:sample {:person/id   1
                                            :person/name "Joe"
                                            :person/cars [{:car/id    22
@@ -195,6 +194,18 @@
   (app/current-state APP)
 
   (reset! (::app/state-atom APP) {})
+
+
+
+  (reset! (::app/state-atom APP) {:fulcro.inspect.core/app-uuid #uuid"da484b5a-4c0b-41a2-96e3-0c82f667505b",
+                                  :root/people                  [:component/id :app.client/person-list],
+                                  :car/id                       {0 {:car/id 0, :car/model "Feet"}, 1 {:car/id 1, :car/model "Wheel"}, 22 {:car/id 22, :car/model "Ford"}},
+                                  :person/id                    {1 {:person/id 1, :person/name "Bob", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                                 2 {:person/id 2, :person/name "Sally", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                                 9 {:person/id 9, :person/name "Joe", :person/age 28, :person/cars [[:car/id 22]]}},
+                                  :component/id                 {:app.client/person-list {:person-list/people [[:person/id 1] [:person/id 2] [:person/id 9]]}}})
+
+
 
 
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 22)
@@ -377,14 +388,14 @@
   (comp/class->any)
   (comp/class->registry-key)
   (comp/component->state-map)
-  (comp/component-class?)
+  (comp/component-class? Car)
   (comp/component-instance?)
   (comp/component-name Car)
   (comp/component-options Car)
   (comp/compressible-transact!)
   (comp/computed)
-  (comp/computed-factory)
-  (comp/computed-initial-state?)
+  (comp/computed-factory Car)
+  (comp/computed-initial-state? ui-car)
   (comp/configure-component!)
   (comp/defsc)
   (comp/denormalize-query)
@@ -403,21 +414,24 @@
   (comp/get-query-by-id)
   (comp/get-raw-react-prop)
   (comp/get-state Person)
-  (comp/has-feature?)
-  (comp/has-ident?)
-  (comp/has-initial-app-state?)
+  (comp/has-feature? Car :car/id)
+  (comp/has-ident? Root)
+  (comp/has-initial-app-state? Root)
   (comp/has-pre-merge?)
-  (comp/has-query?)
-  (comp/ident)
+  (comp/has-query? Person)
+  (comp/ident Car {:car/id    22
+                   :car/model "Ford"})
+
   (comp/ident->any)
   (comp/ident->components)
   (comp/initial-state)
-  (comp/is-factory?)
+  (comp/is-factory? ui-car)
+
   (comp/isoget)
   (comp/isoget-in)
   (comp/link-element)
   (comp/link-query)
-  (comp/make-state-map)
+  (comp/make-state-map Root)
   (comp/mounted?)
   (comp/newer-props)
   (comp/normalize-query)
@@ -425,11 +439,10 @@
   (comp/pre-merge)
   (comp/prop->classes)
   (comp/props)
-  (comp/ptransact!)
-  (comp/query)
-  (comp/query-id)
+  (comp/query Root)
+  (comp/query-id Root)
   (comp/raw->newest-props)
-  (comp/react-type)
+  (comp/react-type Person)
   (comp/register-component!)
   (comp/registry-key->class)
   (comp/set-query!)
