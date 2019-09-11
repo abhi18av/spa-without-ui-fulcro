@@ -190,13 +190,14 @@
 
 
 
+  (js/console.log (deref (::app/state-atom APP)))
 
   (app/current-state APP)
 
   (reset! (::app/state-atom APP) {})
 
 
-  (reset! (::app/state-atom APP) {:fulcro.inspect.core/app-uuid #uuid"da484b5a-4c0b-41a2-96e3-0c82f667505b",
+  (reset! (::app/state-atom APP) {
                                   :root/people                  [:component/id :app.client/person-list],
                                   :car/id                       {0 {:car/id 0, :car/model "Feet"}, 1 {:car/id 1, :car/model "Wheel"}, 22 {:car/id 22, :car/model "Ford"}},
                                   :person/id                    {1 {:person/id 1, :person/name "Bob", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
@@ -413,7 +414,8 @@
   (comp/ident Car {:car/id    22
                    :car/model "Ford"})
 
-  (comp/ident->any)
+  (comp/ident->any APP :person/id)
+
   (comp/ident->components)
   (comp/initial-state)
   (comp/is-factory? ui-car)
