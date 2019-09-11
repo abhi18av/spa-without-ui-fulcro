@@ -36,7 +36,7 @@
 
 (defmutation make-older [{:person/keys [id]}]
   (action [{:keys [state]}]
-          (js/console.log state)
+          (js/console.log "[Person Mutation] {make-older}" state)
           (swap! state update-in [:person/id id
                                   :person/age] inc)))
 
@@ -205,6 +205,21 @@
                                                                  9 {:person/id 9, :person/name "Joe", :person/age 28, :person/cars [[:car/id 22]]}},
                                   :component/id                 {:app.client/person-list {:person-list/people [[:person/id 1] [:person/id 2] [:person/id 9]]}}})
 
+  (app/schedule-render! APP {:force-root? true})
+
+
+  (reset! (::app/state-atom APP) {:root/people  [:component/id :app.client/person-list],
+                                  :car/id       {0 {:car/id 0, :car/model "Feet"}, 1 {:car/id 1, :car/model "Wheel"}, 22 {:car/id 22, :car/model "Ford"}},
+                                  :person/id    {1 {:person/id 1, :person/name "Bob", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                 2 {:person/id 2, :person/name "Sally", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                 4 {:person/id 4, :person/name "Sally", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                 #_#_9 {:person/id 9, :person/name "Joe", :person/age 28, :person/cars [[:car/id 22]]}},
+                                  :component/id {:app.client/person-list {:person-list/people [[:person/id 1]
+                                                                                               [:person/id 2]
+                                                                                               #_[:person/id 9]
+                                                                                               [:person/id 4]]}}})
+
+
 
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 22)
 
@@ -326,7 +341,7 @@
   (app/app-root APP)
 
   (app/basis-t)
-  (app/current-state)
+  (app/current-state APP)
   (app/default-global-eql-transform)
   (app/default-remote-error?)
 
@@ -335,7 +350,7 @@
   (app/force-root-render! APP)
 
   (app/fulcro-app)
-  (app/fulcro-app?)
+  (app/fulcro-app? APP)
   (app/initialize-state!)
   (app/mount!)
 
@@ -354,8 +369,8 @@
 
   (app/schedule-render! APP)
   (app/set-root!)
-  (app/tick!)
-  (app/update-shared!)
+  (app/tick! APP)
+  (app/update-shared! APP)
 
 
 
@@ -381,7 +396,7 @@
   (comp/class->registry-key)
   (comp/component->state-map)
   (comp/component-class? Car)
-  (comp/component-instance?)
+  (comp/component-instance? Root)
   (comp/component-name Car)
   (comp/component-options Car)
   (comp/compressible-transact!)
@@ -395,14 +410,14 @@
   (comp/factory)
   (comp/force-children)
   (comp/fragment)
-  (comp/get-computed)
-  (comp/get-extra-props)
+  (comp/get-computed PersonList)
+  (comp/get-extra-props PersonList)
   (comp/get-ident Car {:car/id    22
                        :car/model "Ford"})
 
   (comp/get-indexes)
   (comp/get-initial-state Person)
-  (comp/get-query)
+  (comp/get-query Root)
   (comp/get-query-by-id)
   (comp/get-raw-react-prop)
   (comp/get-state Person)
@@ -417,7 +432,7 @@
   (comp/ident->any APP :person/id)
 
   (comp/ident->components)
-  (comp/initial-state)
+  (comp/initial-state Root)
   (comp/is-factory? ui-car)
 
   (comp/isoget)
@@ -425,13 +440,13 @@
   (comp/link-element)
   (comp/link-query)
   (comp/make-state-map Root)
-  (comp/mounted?)
+  (comp/mounted? Root)
   (comp/newer-props)
   (comp/normalize-query)
   (comp/normalize-query-elements)
   (comp/pre-merge)
-  (comp/prop->classes)
-  (comp/props)
+  (comp/prop->classes APP :car/id)
+  (comp/props Car)
   (comp/query Root)
   (comp/query-id Root)
   (comp/raw->newest-props)
