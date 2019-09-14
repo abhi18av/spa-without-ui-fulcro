@@ -6,3 +6,4 @@ classes/
 .idea/
 minimal-fulcro-app.iml
 .rebel_readline_history
+/secrets.edn

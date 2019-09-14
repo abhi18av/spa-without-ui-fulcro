@@ -25,10 +25,10 @@
 
 (def parser
   (p/parallel-parser
-    {::p/env     {::p/reader [p/map-reader
-                              pc/parallel-reader
-                              pc/open-ident-reader
-                              p/env-placeholder-reader]
+    {::p/env     {::p/reader               [p/map-reader
+                                            pc/parallel-reader
+                                            pc/open-ident-reader
+                                            p/env-placeholder-reader]
                   ::p/placeholder-prefixes #{">"}}
      ::p/mutate  pc/mutate-async
      ::p/plugins [(pc/connect-plugin {::pc/register [answer answer-plus-one]})
@@ -40,6 +40,7 @@
 (comment
 
   (parser {} [:answer-to-everything :answer-plus-one])
+
 
   )
 
@@ -70,7 +71,7 @@
 (def brand->id {"Taylor" 44151})
 
 (pc/defresolver brand-id-from-name [_ {:keys [product/brand]}]
-  {::pc/input #{:product/brand}
+  {::pc/input  #{:product/brand}
    ::pc/output [:product/brand-id]}
   {:product/brand-id (get brand->id brand)})
 
@@ -112,7 +113,8 @@
                                 p/trace-plugin]}))
 
 (comment
-  (parser {} [:dog.ceo/random-dog-url])
+  (js/console.log
+    (parser {} [:dog.ceo/random-dog-url]))
   )
 
 ;;;;;;;;;;;
@@ -154,3 +156,80 @@
   (parser {} [:env-data {:change-env [:env-data]}])
 
   )
+
+
+;;;;;;;;;;;
+;; How to go from :person/id to that person's details
+(pc/defresolver person-resolver [env {:keys [person/id] :as params}]
+  ;; The minimum data we must already know in order to resolve the outputs
+  {::pc/input  #{:person/id}
+   ;; A query template for what this resolver outputs
+   ::pc/output [:person/name {:person/address [:address/id]}]}
+  ;; normally you'd pull the person from the db, and satisfy the listed
+  ;; outputs. For demo, we just always return the same person details.
+  {:person/name    "Tom"
+   :person/address {:address/id 1}})
+
+;; how to go from :address/id to address details.
+(pc/defresolver address-resolver [env {:keys [address/id] :as params}]
+  {::pc/input  #{:address/id}
+   ::pc/output [:address/city :address/state]}
+  {:address/city  "Salem"
+   :address/state "MA"})
+
+;; define a list with our resolvers
+(def my-resolvers [person-resolver address-resolver])
+
+;; setup for a given connect system
+(def parser
+  (p/parallel-parser
+    {::p/env     {::p/reader               [p/map-reader
+                                            pc/parallel-reader
+                                            pc/open-ident-reader
+                                            p/env-placeholder-reader]
+                  ::p/placeholder-prefixes #{">"}}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register my-resolvers})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;
+
