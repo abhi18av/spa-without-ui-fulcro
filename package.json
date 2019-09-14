@@ -4,12 +4,14 @@
   "description": "",
   "scripts": {
     "app/main": "npx shadow-cljs watch main",
+    "nw": "nw --disable-raf-throttling",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
+    "react-number-format": "^4.2.0",
     "shadow-cljs": "^2.8.52",
-    "react-number-format": "^4.2.0"
+    "nw": "^0.41.1-sdk"
   }
 }
