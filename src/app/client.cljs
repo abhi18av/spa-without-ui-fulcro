@@ -361,10 +361,9 @@
   ;; does not exist
   ;;(app/render!)
 
-  (app/root-class)
+  (app/root-class APP)
 
-
-  (app/root-props-changed?)
+  (app/root-props-changed? APP)
 
 
   (app/schedule-render! APP)
@@ -387,7 +386,8 @@
   ;comp/*query-state*
   ;comp/*shared*
 
-  (comp/any->app APP)
+  (comp/any->app Root)
+
   ;; TODO
   (comp/children)
 
