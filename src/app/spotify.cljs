@@ -133,22 +133,242 @@
                   p/trace-plugin]}))
 
 
+(comment
+
+  (go (prn (<! (parser {} [::latest-product]))))
+
+  )
+
+;;;;;;;;;;
+
+
+(def product->brand
+  {1 "Taylor"})
+
+(pc/defresolver latest-product [_ _]
+  {::pc/output [{::latest-product [:product/id :product/title :product/price]}]}
+  {::latest-product {:product/id    1
+                     :product/title "Acoustic Guitar"
+                     :product/price 199.99M}})
+
+(pc/defresolver product-brand [_ {:keys [product/id]}]
+  {::pc/input  #{:product/id}
+   ::pc/output [:product/brand]}
+  {:product/brand (get product->brand id)})
+
+(def app-registry [latest-product product-brand pc/index-explorer-resolver])
+
+(def parser
+  (p/parallel-parser
+    {::p/env     {::p/reader [p/map-reader
+                              pc/parallel-reader
+                              pc/open-ident-reader]}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register app-registry})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+
 (def brand->id {"Taylor" 44151})
 
 (pc/defresolver brand-id-from-name [_ {:keys [product/brand]}]
-  {::pc/input  #{:product/brand}
+  {::pc/input #{:product/brand}
    ::pc/output [:product/brand-id]}
   {:product/brand-id (get brand->id brand)})
 
 
 (comment
 
-  (parser {} [::latest-product])
+  (go (prn (<! (parser {} [{::latest-product [:product/title :product/brand]}]))))
 
-  (parser {} [{::latest-product [:product/title :product/brand-id]}])
+  (go (prn (<! (parser {} [{::latest-product [:product/title :product/brand-id]}]))))
+
+  (go (prn (<! (parser {} [{[:product/id 1] [:product/brand]}]))))
+
+  (go (prn (<! (parser {} [{[:product/brand "Taylor"] [:product/brand-id]}]))))
 
   )
 
+
+;;;;;;;;;;;
+
+
+
+(pc/defresolver list-things [_ _]
+  {::pc/output [{:items [:number]}]}
+  {:items [{:number 3}
+           {:number 10}
+           {:number 18}]})
+
+(pc/defresolver slow-resolver [_ {:keys [number]}]
+  {::pc/input  #{:number}
+   ::pc/output [:number-added]}
+  (go
+    (async/<! (async/timeout 1000))
+    {:number-added (inc number)}))
+
+(def app-registry [list-things slow-resolver])
+
+(def parser
+  (p/async-parser
+    {::p/env     {::p/reader [p/map-reader
+                              pc/async-reader2
+                              pc/open-ident-reader]}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register app-registry})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+(comment
+
+  (go (prn (<! (parser {} [{:items [:number-added]}]))))
+
+  )
+
+;;;;;;;;;;;
+
+
+(pc/defresolver list-things [_ _]
+  {::pc/output [{:items [:number]}]}
+  {:items [{:number 3}
+           {:number 10}
+           {:number 18}]})
+
+(pc/defresolver slow-resolver [_ input]
+  {::pc/input  #{:number}
+   ::pc/output [:number-added]
+   ::pc/batch? true}
+  (go
+    (async/<! (async/timeout 1000))
+    ; the input will be sequential if a batch opportunity happens
+    (if (sequential? input)
+      ; this will return a list of results, this order should match the input order, like this:
+      ; [{:number-added 4}
+      ;  {:number-added 11}
+      ;  {:number-added 19}]
+      (mapv (fn [v] {:number-added (inc (:number v))}) input)
+      ; the else case still handles the single input case
+      {:number-added (inc (:number input))})))
+
+(def app-registry [list-things slow-resolver])
+
+(def parser
+  (p/async-parser
+    {::p/env     {::p/reader        [p/map-reader
+                                     pc/async-reader2
+                                     pc/open-ident-reader]
+                  ::p/process-error (fn [env error]
+                                      (js/console.error "ERROR" error)
+                                      (p/error-str error))}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register app-registry})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+;; for batching
+(pc/defresolver slow-resolver [_ input]
+  {::pc/input     #{:number}
+   ::pc/output    [:number-added]
+   ; use the transform, note we removed ::pc/batch? true, that's because the transform
+   ; will add this for us
+   ::pc/transform pc/transform-batch-resolver}
+  (go
+    (async/<! (async/timeout 1000))
+    ; no need to detect sequence, it is always a sequence now
+    (mapv (fn [v] {:number-added (inc (:number v))}) input)))
+
+(pc/defresolver slow-resolver [_ {:keys [number]}]
+  {::pc/input     #{:number}
+   ::pc/output    [:number-added]
+   ; set auto-batch with concurrency of 10
+   ::pc/transform (pc/transform-auto-batch 10)}
+  (go
+    (async/<! (async/timeout 1000))
+    ; dealing with the single case, as in the first example we did on batch
+    {:number-added (inc number)}))
+
+(comment
+  (go (prn (<! (parser {} [{:items [:number-added]}]))))
+
+  )
+;;;;;;;;;;;
+(pc/defmutation create-user [{::keys [db]} user]
+  {::pc/sym    'user/create
+   ::pc/params [:user/name :user/email]
+   ::pc/output [:user/id]}
+  (let [{:keys [user/id] :as new-user}
+        (-> user
+            (select-keys [:user/name :user/email])
+            (merge {:user/id         (random-uuid)
+                    :user/created-at (js/Date.)}))]
+    (swap! db assoc-in [:users id] new-user)
+    {:user/id id}))
+
+(pc/defresolver user-data [{::keys [db]} {:keys [user/id]}]
+  {::pc/input  #{:user/id}
+   ::pc/output [:user/id :user/name :user/email :user/created-at]}
+  (get-in @db [:users id]))
+
+(pc/defresolver all-users [{::keys [db]} _]
+  {::pc/output [{:user/all [:user/id :user/name :user/email :user/created-at]}]}
+  (vals (get @db :users)))
+
+(def api-registry [create-user user-data all-users])
+
+(def parser
+  (p/parallel-parser
+    {::p/env     {::p/reader [p/map-reader pc/parallel-reader pc/open-ident-reader]
+                  ::db       (atom {})}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register api-registry})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+(comment
+
+  (go (prn (<! (parser {} [{:items [:number-added]}]))))
+
+  )
+
+
+;;;;;;;;;;
+
+(pc/defmutation create-user [{::keys [db]} user]
+  {::pc/sym    'user/create
+   ::pc/params [:user/name :user/email]
+   ::pc/output [:user/id]}
+  (let [{:keys [user/id] :as new-user}
+        (-> user
+            (select-keys [:user/name :user/email])
+            (merge {:user/id         (random-uuid)
+                    :user/created-at (js/Date.)}))]
+    (swap! db assoc-in [:users id] new-user)
+    {:user/id id}))
+
+(pc/defresolver user-data [{::keys [db]} {:keys [user/id]}]
+  {::pc/input  #{:user/id}
+   ::pc/output [:user/id :user/name :user/email :user/created-at]}
+  (get-in @db [:users id]))
+
+(pc/defresolver all-users [{::keys [db]} _]
+  {::pc/output [{:user/all [:user/id :user/name :user/email :user/created-at]}]}
+  (vals (get @db :users)))
+
+(def api-registry [create-user user-data all-users])
+
+(def parser
+  (p/parallel-parser
+    {::p/env     {::p/reader [p/map-reader pc/parallel-reader pc/open-ident-reader]
+                  ::db       (atom {})}
+     ::p/mutate  pc/mutate-async
+     ::p/plugins [(pc/connect-plugin {::pc/register api-registry})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+
+(comment
+  (go (prn (<! (parser {} [{(user/create {:user/name "Rick Sanches" :user/email "rick@morty.com"}) [:user/id :user/name :user/created-at]}]))))
+  )
 
 ;;;;;;;;;;;
 
