@@ -8,7 +8,9 @@
     [com.wsscode.pathom.trace :as pt]
     [com.wsscode.pathom.profile :as pp]
     [com.wsscode.common.async-cljs :refer [let-chan <!p go-catch <? <?maybe]]
-    [goog.object :as gobj]))
+    [goog.object :as gobj]
+    [cljs.core.async :refer-macros [go go-loop alt!]]
+    [cljs.core.async :refer [chan put! take! >! <! buffer dropping-buffer sliding-buffer timeout close! alts!]]))
 
 
 ;;;;;;;;;;;
@@ -40,8 +42,7 @@
 
 
 (comment
-
-  (parser {} [:answer-to-everything :answer-plus-one])
+  (async/go (prn (async/<! (parser {} [:answer-to-everything :answer-plus-one]))))
 
 
   )
@@ -120,9 +121,13 @@
      ::p/plugins [(pc/connect-plugin {::pc/register [random-dog]})
                   p/error-handler-plugin
                   p/trace-plugin]}))
+
 (comment
   (js/console.log
     (parser {} [:dog.ceo/random-dog-url]))
+
+  (go (prn (<! (parser {} [:dog.ceo/random-dog-url]))))
+
   )
 
 ;;;;;;;;;;;
