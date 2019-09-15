@@ -10,7 +10,7 @@
     [com.wsscode.common.async-cljs :refer [let-chan <!p go-catch <? <?maybe]]
     [goog.object :as gobj]
     [cljs.core.async :refer-macros [go go-loop alt!]]
-    [cljs.core.async :refer [chan put! take! >! <! buffer dropping-buffer sliding-buffer timeout close! alts!]]))
+    [cljs.core.async :as async :refer [chan put! take! >! <! buffer dropping-buffer sliding-buffer timeout close! alts!]]))
 
 
 ;;;;;;;;;;;
@@ -28,7 +28,7 @@
 
 
 (def parser
-  (p/parallel-parser
+  (p/async-parser
     {::p/env     {::p/reader               [p/map-reader
                                             pc/parallel-reader
                                             pc/open-ident-reader
@@ -42,9 +42,71 @@
 
 
 (comment
-  (async/go (prn (async/<! (parser {} [:answer-to-everything :answer-plus-one]))))
+  (go (prn (<! (parser {} [:answer-to-everything :answer-plus-one]))))
 
 
+  )
+
+
+;;;;;;;;;;
+
+
+(pc/defresolver async-info [_ _]
+  {::pc/output [:async-info]}
+  (go
+    (<! (async/timeout (+ 100 (rand-int 1000))))
+    {:async-info "From async"}))
+
+(pc/defresolver foo [_ _]
+  {::pc/output [:foo]}
+  {:foo "Regular"})
+
+(def register [async-info foo])
+
+(def parser
+  (p/async-parser {::p/env     {::p/reader [p/map-reader
+                                            pc/async-reader2]}
+                   ::p/plugins [(pc/connect-plugin {::pc/register register})
+                                pt/trace-plugin]}))
+
+
+(comment
+  (go (prn (<! (parser {} [:foo :async-info]))))
+  )
+;;;;;;;;;;;
+
+
+(pc/defresolver async-info [_ _]
+  {::pc/output [:async-info]}
+  (go-catch
+    (<? (async/timeout (+ 100 (rand-int 1000))))
+    {:async-info "From async"}))
+
+(pc/defresolver async-error [_ _]
+  {::pc/output [:async-error]}
+  ; go catch will catch any exception and return then as the channel value
+  (go-catch
+    ; <? macro will re-throw any exception that get read from the channel
+    (<? (async/timeout (+ 100 (rand-int 1000))))
+    (throw (ex-info "Error!!" {}))))
+
+(pc/defresolver foo [_ _]
+  {::pc/output [:foo]}
+  {:foo "Regular"})
+
+(def register [async-info async-error foo])
+
+(def parser
+  (p/async-parser {::p/env     {::p/reader [p/map-reader
+                                            pc/async-reader2]}
+                   ::p/plugins [(pc/connect-plugin {::pc/register register})
+                                p/error-handler-plugin
+                                pt/trace-plugin]}))
+
+
+
+(comment
+  (go (prn (<! (parser {} [:foo :async-info :async-error]))))
   )
 
 
@@ -123,8 +185,6 @@
                   p/trace-plugin]}))
 
 (comment
-  (js/console.log
-    (parser {} [:dog.ceo/random-dog-url]))
 
   (go (prn (<! (parser {} [:dog.ceo/random-dog-url]))))
 
