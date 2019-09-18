@@ -14,7 +14,6 @@
 ;; => 42
 
 
-
 (put! ch 42 #(println "Just put 42"))
 ;; => true
 
