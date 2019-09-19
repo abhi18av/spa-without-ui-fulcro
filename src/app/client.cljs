@@ -21,6 +21,7 @@
                         (let [p (comp/props this)]
                           (js/console.log "[Person] MOUNTED" p)))}
   (js/console.log "[Person] UPDATED" props)
+  (js/console.log "[Person] name" name)
   (dom/div))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
@@ -40,14 +41,32 @@
                                  :person/cars [{:car/id    22
                                                 :car/model "Escort"}]}})
 
+  (-> APP
+      (::app/state-atom)
+      deref)
+
+
+  (reset! (::app/state-atom APP) {})
+
+  (reset! (::app/state-atom APP) {:root {:person/id   1
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id    22
+                                                        :car/model "Escort"}]}})
+
+
+
+  (app/schedule-render! APP {:force-root? true})
+
+
+
   )
 
 
 ;;===== Root Component =======================================
 
-(defsc Root [this {:root/keys [] :as props}]
-  {:query             []
-   :initial-state     {}
+(defsc Root [this {:keys [:root] :as props}]
+  {#_#_:query             []
+   #_#_:initial-state     {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
@@ -55,7 +74,7 @@
   (dom/div
     (dom/h1 "Hello, Fulcro!")
     (dom/div
-      (ui-person))))
+      (ui-person root))))
 
 
 
