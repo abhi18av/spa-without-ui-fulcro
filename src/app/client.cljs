@@ -60,7 +60,7 @@
 
 ;;===== Person Component =======================================
 
-(defsc Person [this {:keys [:person/id :person/name] :as props}]
+(defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
   {#_#_:query []
    #_#_:initial-state {}
    :componentDidMount (fn [this]
@@ -70,10 +70,9 @@
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
   (dom/div
-    (dom/div (ui-car props))))
+    (dom/div (map ui-car cars))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
-
 
 (comment
 
