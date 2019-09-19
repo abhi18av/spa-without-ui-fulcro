@@ -14,16 +14,34 @@
 
 ;;===== Person Component =======================================
 
-(defsc Person [this props]
-  {:query             []
-   :initial-state     {}
+(defsc Person [this {:keys [:person/id :person/name] :as props}]
+  {#_#_:query []
+   #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Person] MOUNTED" p)))}
-  (js/console.log "[Person] UPDATED"  props)
+  (js/console.log "[Person] UPDATED" props)
   (dom/div))
 
-(def ui-person (comp/factory Person))
+(def ui-person (comp/factory Person {:keyfn :person/id}))
+
+
+(comment
+
+  (comp/get-query Person)
+
+  (comp/get-initial-state Person)
+
+  (comp/props Person)
+
+
+  (comp/get-ident Person {:root {:person/id   1
+                                 :person/name "Joe"
+                                 :person/cars [{:car/id    22
+                                                :car/model "Escort"}]}})
+
+  )
+
 
 ;;===== Root Component =======================================
 
@@ -33,7 +51,7 @@
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
-  (js/console.log "[Root] UPDATED"  props)
+  (js/console.log "[Root] UPDATED" props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")
     (dom/div
@@ -48,7 +66,10 @@
   (comp/get-initial-state Root)
 
   ;; Root has NO ident
-  (comp/get-ident Root )
+  (comp/get-ident Root)
+
+
+  (comp/props Root)
 
   )
 
@@ -79,9 +100,9 @@
   (reset! (::app/state-atom APP) {})
 
   (reset! (::app/state-atom APP) {:root {:person/id   1
-                                           :person/name "Joe"
-                                           :person/cars [{:car/id    22
-                                                          :car/model "Escort"}]}})
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id    22
+                                                        :car/model "Escort"}]}})
 
 
 
@@ -161,12 +182,12 @@
 
 
   (reset! (::app/state-atom APP) {
-                                  :root/people                  [:component/id :app.client/person-list],
-                                  :car/id                       {0 {:car/id 0, :car/model "Feet"}, 1 {:car/id 1, :car/model "Wheel"}, 22 {:car/id 22, :car/model "Ford"}},
-                                  :person/id                    {1 {:person/id 1, :person/name "Bob", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
-                                                                 2 {:person/id 2, :person/name "Sally", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
-                                                                 9 {:person/id 9, :person/name "Joe", :person/age 28, :person/cars [[:car/id 22]]}},
-                                  :component/id                 {:app.client/person-list {:person-list/people [[:person/id 1] [:person/id 2] [:person/id 9]]}}})
+                                  :root/people  [:component/id :app.client/person-list],
+                                  :car/id       {0 {:car/id 0, :car/model "Feet"}, 1 {:car/id 1, :car/model "Wheel"}, 22 {:car/id 22, :car/model "Ford"}},
+                                  :person/id    {1 {:person/id 1, :person/name "Bob", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                 2 {:person/id 2, :person/name "Sally", :person/age 28, :person/cars [[:car/id 0] [:car/id 1]]},
+                                                 9 {:person/id 9, :person/name "Joe", :person/age 28, :person/cars [[:car/id 22]]}},
+                                  :component/id {:app.client/person-list {:person-list/people [[:person/id 1] [:person/id 2] [:person/id 9]]}}})
 
   (app/schedule-render! APP {:force-root? true})
 
