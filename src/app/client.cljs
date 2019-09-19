@@ -67,6 +67,16 @@
 
 ;;===== Person Component =======================================
 
+(defmutation make-older [{:keys [:person/id]}]
+  (action [{:keys [state]}]
+          (js/console.log "[PERSON] MUTATION make-older" state)
+          (swap! state update-in [:person/id id :person/age] inc)))
+
+(comment
+  (comp/transact! APP [(make-older {:person/id 1})])
+  )
+
+
 (defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
   {:query             [:person/id :person/name :person/age
                        {:person/cars (comp/get-query Car)}
