@@ -32,7 +32,8 @@
 ;;===== Car Component =======================================
 
 (defsc Car [this {:keys [:car/id :car/model] :as props}]
-  {#_#_:query []
+  {:query             [:car/id :car/model]
+   :ident             :car/id
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
@@ -57,7 +58,6 @@
                               :person/name "Joe"
                               :person/cars [{:car/id    22
                                              :car/model "Escort"}]}})
-
   (-> APP
       (::app/state-atom)
       deref)
@@ -65,10 +65,19 @@
 
   (reset! (::app/state-atom APP) {})
 
+
   (reset! (::app/state-atom APP) {:root {:person/id   1
                                          :person/name "Joe"
-                                         :person/cars [{:car/id    22
-                                                        :car/model "Escort"}]}})
+                                         :person/cars [{:car/id    01
+                                                        :car/model "Joe-1"}]}})
+
+
+  (merge/merge-component! APP Car {:person/id   2
+                                   :person/name "Sally"
+                                   :person/cars [{:car/id    02
+                                                  :car/model "Sally-1"}]})
+
+
 
   (app/schedule-render! APP)
 
@@ -79,7 +88,7 @@
 ;;===== Person Component =======================================
 
 (defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
-  {:query             [:person/id :person/name :person/cars]
+  {:query             [:person/id :person/name {:person/cars (comp/get-query Car)}]
    :ident             :person/id
    :initial-state     {}
    :componentDidMount (fn [this]
@@ -108,6 +117,9 @@
                                  :person/cars [{:car/id    22
                                                 :car/model "Escort"}]}})
 
+
+  (comp/get-ident Person (app/current-state APP))
+
   (-> APP
       (::app/state-atom)
       deref)
@@ -120,19 +132,19 @@
   (reset! (::app/state-atom APP) {:root {:person/id   1
                                          :person/name "Joe"
                                          :person/cars [{:car/id    01
-                                                        :car/model "Model-1"}]}})
+                                                        :car/model "Joe-1"}]}})
 
   ;; this bypasses the auto-normalization mechanism and adds the :person/id directly parallel to the root
   (merge/merge-component! APP Person {:person/id   2
                                       :person/name "Sally"
                                       :person/cars [{:car/id    02
-                                                     :car/model "Model-2"}]})
+                                                     :car/model "Sally-1"}]})
 
 
   (merge/merge-component! APP Person {:person/id   3
                                       :person/name "Bob"
                                       :person/cars [{:car/id    03
-                                                     :car/model "Model-3"}]})
+                                                     :car/model "Bob-1"}]})
 
 
 
@@ -144,12 +156,11 @@
 ;;===== Root Component =======================================
 
 (defsc Root [this {:keys [:root] :as props}]
-  {#_#_:query []
+  {:query             [{:root (comp/get-query Person)}]
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (clog {:message "[APP] Last ROOT Mount:" :props (js/Date.)})
-                          #_(clog {:message "[Root] MOUNTED" :props p})))}
+                          (clog {:message "[APP] Last ROOT Mount:" :props (js/Date.)})))}
   (js/console.log "[Root] UPDATED" props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")
