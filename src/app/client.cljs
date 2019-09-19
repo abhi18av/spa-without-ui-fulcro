@@ -36,6 +36,9 @@
    :ident             :car/id
    :initial-state     {:car/id    :param/id
                        :car/model :param/model}
+   :initLocalState    (fn [this]
+                        (clog {:message "[Car] InitLocalState"}))
+   :random-data       "This is some random data"
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Car] MOUNTED" :props p})))}
@@ -53,7 +56,7 @@
 
   (comp/get-initial-state Car)
 
-  (comp/props Car)
+  (comp/component-options Car)
 
   (comp/get-ident Car {:car/id    22
                        :car/model "Escort"})
@@ -87,6 +90,8 @@
                        :person/age  20
                        :person/cars [{:id 1 :model "Leaf"}
                                      {:id 2 :model "Escort"}]}
+   :initLocalState    (fn [this]
+                        (clog {:message "[Person] InitLocalState"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
@@ -125,6 +130,8 @@
 (defsc Root [this {:keys [:root] :as props}]
   {:query             [{:root (comp/get-query Person)}]
    :initial-state     {:root {:id 1 :name "Joe"}}
+   :initLocalState    (fn [this]
+                        (clog {:message "[APP] ROOT: InitLocalState"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.)})))}
