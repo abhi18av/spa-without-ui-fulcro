@@ -70,6 +70,7 @@
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
   (dom/div
+    ;; I'm sending to Car the value associated with the cars key
     (dom/div (map ui-car cars))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
@@ -119,6 +120,7 @@
   (dom/div
     (dom/h1 "Hello, Fulcro!")
     (dom/div
+      ;; I'm sending to Person the value associated with the root key
       (ui-person root))))
 
 
