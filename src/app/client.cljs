@@ -34,7 +34,9 @@
 (defsc Car [this {:keys [:car/id :car/model] :as props}]
   {:query             [:car/id :car/model]
    :ident             :car/id
-   :initial-state     {}
+   :initial-state     (fn [{:keys [id model]}]
+                        {:car/id    id
+                         :car/model model})
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Car] MOUNTED" :props p})))}
@@ -101,7 +103,9 @@
    :initial-state     (fn [{:keys [id name]}]
                         {:person/id   id
                          :person/name name
-                         :person/age 20})
+                         :person/age  20
+                         :person/cars [(comp/get-initial-state Car {:id 1 :model "Leaf"})
+                                       (comp/get-initial-state Car {:id 2 :model "Escort"})]})
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
