@@ -1,113 +1,26 @@
 (ns app.client
   (:require
     ;; external libs
-    ["react-number-format" :as NumberFormat]
     ;; internal libs
-    [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
-    [com.fulcrologic.fulcro.rendering.keyframe-render :as keyframe]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
-    [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
-    [com.fulcrologic.fulcro.algorithms.data-targeting :as targeting]
-    [com.fulcrologic.fulcro.algorithms.denormalize :as fdn]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def ui-number-format (interop/react-factory NumberFormat))
+    [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defsc Car [this {:car/keys [id model] :as props}]
-  {:query            [:car/id :car/model]
-
-   :initial-state    {:car/id    :param/id
-                      :car/model :param/model}
-
-   :ident            :car/id
-
-   :some-random-data "random data"}
-  (js/console.log "Render Car" id)
-  (dom/div))
-
-(def ui-car (comp/factory Car {:keyfn :car/id}))
 
 ;;;;;;;;;;;
 
-(defmutation make-older [{:person/keys [id]}]
-  (action [{:keys [state]}]
-          (js/console.log "[Person Mutation] {make-older}" state)
-          (swap! state update-in [:person/id id
-                                  :person/age] inc)))
-
-(defsc Person [this {:person/keys [id name age cars] :as props}]
-
-  {:query                 [:person/id :person/name :person/age
-                           {:person/cars (comp/get-query Car)}]
-
-   :initial-state         {:person/id   :param/id
-                           :person/name :param/name
-                           :person/age  28
-                           :person/cars [{:id 0 :model "Feet"}
-                                         {:id 1 :model "Wheel"}]}
-
-   :ident                 :person/id
-
-   :some-random-data      "open-ended keys in options map"
-
-   :shouldComponentUpdate (fn [] true)
-
-   :componentDidMount     (fn [this]
-                            (let [p (comp/props this)]
-                              (js/console.log "[Person] MOUNTED" p)))}
-
-  (let [onClick (comp/get-state this :onClick)]
-    (dom/div
-      (map ui-car cars))
-    (comment
-      (comp/transact! this [(make-older {:person/id id})]
-                      {:refresh [:person-list/people]}))))
-
-(def ui-person (comp/factory Person {:keyfn :person/id}))
-
-;;;;;;;;;;;
-
-(defsc PersonList [this {:person-list/keys [people] :as props}]
-  {:query             [{:person-list/people (comp/get-query Person)}]
-
-   :ident             (fn [_ _] [:component/id ::person-list])
-   :initial-state     {:person-list/people [{:id 1 :name "Bob"}
-                                            {:id 2 :name "Sally"}]}
-
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          (js/console.log "[PersonList] MOUNTED" p)))}
-
-  (let [cnt (reduce
-              (fn [c {:person/keys [age]}]
-                (if (> age 30)
-                  (inc c)
-                  c))
-              0
-              people)]
-    (dom/div
-      (map ui-person people))))
-
-(def ui-person-list
-  (comp/factory PersonList {:keyfn :person-list/people}))
-
-
-;;;;;;;;;;;
-
-(defsc Root [this {:root/keys [people]}]
-  {:query             [{:root/people (comp/get-query PersonList)}]
-   :initial-state     {:root/people {}}
+(defsc Root [this {:root/keys [] :as people}]
+  {:query             []
+   :initial-state     {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
   (dom/div
-    (dom/div "Hello, Fulcro!")
-    (ui-person-list people)))
+    (dom/h1 "Hello, Fulcro!")))
 
 (defonce APP (app/fulcro-app))
 
