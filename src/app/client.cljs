@@ -11,7 +11,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;===== ROOT Component =======================================
+
+;;===== Person Component =======================================
+
+(defsc Person [this props]
+  {:query             []
+   :initial-state     {}
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (js/console.log "[Person] MOUNTED" p)))}
+  (js/console.log "[Person] UPDATED"  props)
+  (dom/div))
+
+(def ui-person (comp/factory Person))
+
+;;===== Root Component =======================================
 
 (defsc Root [this {:root/keys [] :as props}]
   {:query             []
@@ -19,9 +33,11 @@
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
-  (js/console.log "[Root] Updated"  props)
+  (js/console.log "[Root] UPDATED"  props)
   (dom/div
-    (dom/h1 "Hello, Fulcro!")))
+    (dom/h1 "Hello, Fulcro!")
+    (dom/div
+      (ui-person))))
 
 
 
