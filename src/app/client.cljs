@@ -58,34 +58,7 @@
   (comp/get-ident Car {:car/id    22
                        :car/model "Escort"})
 
-
-  (-> APP
-      (::app/state-atom)
-      deref)
-
-
-  (reset! (::app/state-atom APP) {})
-
-
-  (reset! (::app/state-atom APP) {:root {:person/id   1
-                                         :person/name "Joe"
-                                         :person/cars [{:car/id    01
-                                                        :car/model "Joe-1"}]}})
-
-
-  (merge/merge-component! APP Car {:car/id    22
-                                   :car/model "Escort"}
-                          :append [:person/id 3 :person/cars])
-
-
-  (merge/merge-component! APP Person {:person/id   3
-                                      :person/name "Bob"
-                                      :person/cars [{:car/id    03
-                                                     :car/model "Bob-1"}]}
-                          :replace [:root])
-
-
-  (app/schedule-render! APP)
+  @(::app/state-atom APP)
 
   )
 
@@ -126,57 +99,11 @@
 
   (comp/props Person)
 
-
-  (comp/get-ident Person {:root {:person/id   1
-                                 :person/name "Joe"
-                                 :person/cars [{:car/id    22
-                                                :car/model "Escort"}]}})
-
-
-  (comp/get-ident Person (app/current-state APP))
-
-  (-> APP
-      (::app/state-atom)
-      deref)
+  @(::app/state-atom APP)
 
   (app/current-state APP)
 
-
-  (reset! (::app/state-atom APP) {})
-
-
-  ;; This doesn't create a normalized db
-  (reset! (::app/state-atom APP) {:root {:person/id   1
-                                         :person/name "Joe"
-                                         :person/age  10
-                                         :person/cars [{:car/id    01
-                                                        :car/model "Joe-1"}]}})
-
-
-
-
-  ;; this bypasses the auto-normalization mechanism and adds the :person/id directly parallel to the root
-  (merge/merge-component! APP Person {:person/id   2
-                                      :person/name "Sally"
-                                      :person/age  20
-                                      :person/cars [{:car/id    02
-                                                     :car/model "Sally-1"}]})
-
-
-
-
-  (merge/merge-component! APP Person {:person/id   3
-                                      :person/name "Bob"
-                                      :person/age  20
-                                      :person/cars [{:car/id    03
-                                                     :car/model "Bob-1"}]}
-                          :replace [:root])
-
-
-
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
-
-
 
   (app/schedule-render! APP)
 
@@ -206,26 +133,9 @@
 
   (comp/get-initial-state Root)
 
-  ;; Root has NO ident
-  (comp/get-ident Root)
-
+  @(::app/state-atom APP)
 
   (comp/props Root)
-
-  (-> APP
-      (::app/state-atom)
-      deref)
-
-
-  (reset! (::app/state-atom APP) {})
-
-  (reset! (::app/state-atom APP) {:root {:person/id   1
-                                         :person/name "Joe"
-                                         :person/cars [{:car/id    22
-                                                        :car/model "Escort"}]}})
-
-
-
 
   (app/schedule-render! APP {:force-root? true})
 
