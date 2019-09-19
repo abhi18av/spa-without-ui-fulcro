@@ -34,9 +34,8 @@
 (defsc Car [this {:keys [:car/id :car/model] :as props}]
   {:query             [:car/id :car/model]
    :ident             :car/id
-   :initial-state     (fn [{:keys [id model]}]
-                        {:car/id    id
-                         :car/model model})
+   :initial-state     {:car/id    :param/id
+                       :car/model :param/model}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Car] MOUNTED" :props p})))}
@@ -100,12 +99,11 @@
                        {:person/cars (comp/get-query Car)}
                        #_{:person/addresses (comp/get-query Address)}]
    :ident             :person/id
-   :initial-state     (fn [{:keys [id name]}]
-                        {:person/id   id
-                         :person/name name
-                         :person/age  20
-                         :person/cars [(comp/get-initial-state Car {:id 1 :model "Leaf"})
-                                       (comp/get-initial-state Car {:id 2 :model "Escort"})]})
+   :initial-state     {:person/id   :param/id
+                       :person/name :param/name
+                       :person/age  20
+                       :person/cars [{:id 1 :model "Leaf"}
+                                     {:id 2 :model "Escort"}]}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
@@ -189,8 +187,7 @@
 
 (defsc Root [this {:keys [:root] :as props}]
   {:query             [{:root (comp/get-query Person)}]
-   :initial-state     (fn [_]
-                        {:root (comp/get-initial-state Person {:id 1 :name "Joe"})})
+   :initial-state     {:root {:id 1 :name "Joe"}}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.)})))}
