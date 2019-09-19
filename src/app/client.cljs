@@ -21,6 +21,7 @@
                         (let [p (comp/props this)]
                           (js/console.log "[Person] MOUNTED" p)))}
   (js/console.log "[Person] UPDATED" props)
+  (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
   (dom/div))
 
