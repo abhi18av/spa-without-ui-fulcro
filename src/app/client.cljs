@@ -150,8 +150,8 @@
 
 ;;===== Person Component =======================================
 
-(defsc Person [this {:keys [:person/id :person/name :person/cars #_:person/addresses] :as props}]
-  {:query             [:person/id :person/name
+(defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
+  {:query             [:person/id :person/name :person/age
                        {:person/cars (comp/get-query Car)}
                        #_{:person/addresses (comp/get-query Address)}]
    :ident             :person/id
@@ -162,6 +162,7 @@
   (js/console.log "[Person] UPDATED" props)
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
+  (js/console.log "[Person] age" age)
   (dom/div
     ;; I'm sending to Car the value associated with the cars key
     (dom/div (map ui-car cars))
@@ -195,23 +196,37 @@
 
   (reset! (::app/state-atom APP) {})
 
+
+  ;; This doesn't create a normalized db
   (reset! (::app/state-atom APP) {:root {:person/id   1
                                          :person/name "Joe"
+                                         :person/age  10
                                          :person/cars [{:car/id    01
                                                         :car/model "Joe-1"}]}})
+
+
+
 
   ;; this bypasses the auto-normalization mechanism and adds the :person/id directly parallel to the root
   (merge/merge-component! APP Person {:person/id   2
                                       :person/name "Sally"
+                                      :person/age  20
                                       :person/cars [{:car/id    02
                                                      :car/model "Sally-1"}]})
 
 
+
+
   (merge/merge-component! APP Person {:person/id   3
                                       :person/name "Bob"
+                                      :person/age  20
                                       :person/cars [{:car/id    03
                                                      :car/model "Bob-1"}]}
                           :replace [:root])
+
+
+
+  (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
 
 
 
