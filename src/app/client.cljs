@@ -72,10 +72,17 @@
                                                         :car/model "Joe-1"}]}})
 
 
-  (merge/merge-component! APP Car {:person/id   2
-                                   :person/name "Sally"
-                                   :person/cars [{:car/id    02
-                                                  :car/model "Sally-1"}]})
+  (merge/merge-component! APP Car {:car/id    22
+                                   :car/model "Escort"}
+                          :append [:person/id 3 :person/cars])
+
+
+  (merge/merge-component! APP Person {:person/id   3
+                                      :person/name "Bob"
+                                      :person/cars [{:car/id    03
+                                                     :car/model "Bob-1"}]}
+                          :replace [:root])
+
 
   (app/schedule-render! APP)
 
@@ -217,7 +224,7 @@
 
 (defsc Root [this {:keys [:root] :as props}]
   {:query             [{:root (comp/get-query Person)}]
-   #_#_:initial-state {}
+   :initial-state     {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.)})))}
