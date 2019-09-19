@@ -13,19 +13,19 @@
 
 ;;===== ROOT Component =======================================
 
-(defsc Root [this {:root/keys [] :as people}]
+(defsc Root [this {:root/keys [] :as props}]
   {:query             []
    :initial-state     {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (js/console.log "[Root] MOUNTED" p)))}
+  (js/console.log "[Root] Updated"  props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")))
 
 
 
 (comment
-
 
   (comp/get-query Root)
 
@@ -47,8 +47,6 @@
   (app/mount! APP Root "app"))
 
 
-
-
 (comment
 
   (-> APP
@@ -57,10 +55,21 @@
 
   (keys APP)
 
-  (::app/state-atom APP)
   (::app/algorithms APP)
   (:com.fulcrologic.fulcro.application/runtime-atom APP)
   (:com.fulcrologic.fulcro.application/config APP)
+
+
+  (reset! (::app/state-atom APP) {})
+
+  (reset! (::app/state-atom APP) {:root {:person/id   1
+                                           :person/name "Joe"
+                                           :person/cars [{:car/id    22
+                                                          :car/model "Escort"}]}})
+
+
+
+  (app/schedule-render! APP {:force-root? true})
 
   )
 
@@ -70,14 +79,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; COMMENTS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn get-components-that-query-for-a-prop
-  [prop]
-  (reduce (fn [mounted-instances cls]
-            (concat mounted-instances
-                    (comp/class->all APP (comp/registry-key->class cls))))
-          []
-          (comp/prop->classes APP prop)))
 
 (comment
 
@@ -94,27 +95,6 @@
 
 
   (app/schedule-render! APP {:force-root? true})
-
-  (-> APP
-      (::app/state-atom)
-      deref)
-
-  (keys APP)
-
-  (::app/state-atom APP)
-  (::app/algorithms APP)
-  (:com.fulcrologic.fulcro.application/runtime-atom APP)
-  (:com.fulcrologic.fulcro.application/config APP)
-
-
-
-  ;;====== Merge data with the app db ======
-
-
-  (reset! (::app/state-atom APP) {:sample {:person/id   1
-                                           :person/name "Joe"
-                                           :person/cars [{:car/id    22
-                                                          :car/model "Escort"}]}})
 
   ;; TODO understand how to merge directly to the app root
   #_(merge/merge! APP Sample {:root/person {:person/id   18
@@ -150,6 +130,18 @@
   (app/current-state APP)
 
   (reset! (::app/state-atom APP) {})
+
+
+
+  (defn get-components-that-query-for-a-prop
+    [prop]
+    (reduce (fn [mounted-instances cls]
+              (concat mounted-instances
+                      (comp/class->all APP (comp/registry-key->class cls))))
+            []
+            (comp/prop->classes APP prop)))
+
+
 
 
   (reset! (::app/state-atom APP) {
