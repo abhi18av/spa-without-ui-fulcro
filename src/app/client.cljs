@@ -54,10 +54,10 @@
 
   (comp/props Car)
 
-  (comp/get-ident Car {:root {:person/id   1
-                              :person/name "Joe"
-                              :person/cars [{:car/id    22
-                                             :car/model "Escort"}]}})
+  (comp/get-ident Car {:car/id    22
+                       :car/model "Escort"})
+
+
   (-> APP
       (::app/state-atom)
       deref)
@@ -107,13 +107,8 @@
 
   (comp/props Address)
 
-  (comp/get-ident Address {:root {:person/id      1
-                                  :person/name    "Joe"
-                                  :person/address {:address/id    01
-                                                   :address/state "Joe-1"}
-                                  :person/cars    [{:car/id    01
-                                                    :car/model "Joe-1"}]}})
-
+  (comp/get-ident Address {:address/id    01
+                           :address/state "Joe-1"})
 
   (-> APP
       (::app/state-atom)
@@ -208,7 +203,8 @@
   (merge/merge-component! APP Person {:person/id   3
                                       :person/name "Bob"
                                       :person/cars [{:car/id    03
-                                                     :car/model "Bob-1"}]})
+                                                     :car/model "Bob-1"}]}
+                          :replace [:root])
 
 
 
