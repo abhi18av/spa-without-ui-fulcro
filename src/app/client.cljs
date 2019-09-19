@@ -79,8 +79,8 @@
 ;;===== Person Component =======================================
 
 (defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
-  {#_#_:query []
-   #_#_:initial-state {}
+  {:query             [:person/id :person/name :person/cars]
+   :initial-state     {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
@@ -133,8 +133,8 @@
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (js/console.log "[APP] Last ROOT Mount: \n" (js/Date.))
-                          (clog {:message "[Root] MOUNTED" :props p})))}
+                          (clog {:message "[APP] Last ROOT Mount:" :props (js/Date.)})
+                          #_(clog {:message "[Root] MOUNTED" :props p})))}
   (js/console.log "[Root] UPDATED" props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")
