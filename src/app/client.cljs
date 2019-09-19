@@ -10,6 +10,25 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;===== UTILS=======================================
+
+
+
+#_(js/console.log "%cExtra Large Yellow Text with Red Background", "background: red; color: yellow; font-size: large")
+
+(defn clog [{:keys [message props] :or {message "Hello, World!" props {}}}]
+  (js/console.log (str "%c" message), "color: green ; font-weight: bold; font-size: small;")
+  (js/console.log props))
+
+(comment
+  (clog {:message "Hello, CLog"})
+  )
+
+
+
+;;;;;;;; COMPONENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;===== Car Component =======================================
 
 (defsc Car [this {:keys [:car/id :car/model] :as props}]
@@ -17,7 +36,7 @@
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (js/console.log "[Car] MOUNTED" p)))}
+                          (clog {:message "[Car] MOUNTED" :props p})))}
   (js/console.log "[Car] UPDATED" props)
   (js/console.log "[Car] id" id)
   (js/console.log "[Car] model" model)
@@ -35,9 +54,9 @@
   (comp/props Car)
 
   (comp/get-ident Car {:root {:person/id   1
-                                 :person/name "Joe"
-                                 :person/cars [{:car/id    22
-                                                :car/model "Escort"}]}})
+                              :person/name "Joe"
+                              :person/cars [{:car/id    22
+                                             :car/model "Escort"}]}})
 
   (-> APP
       (::app/state-atom)
@@ -51,10 +70,9 @@
                                          :person/cars [{:car/id    22
                                                         :car/model "Escort"}]}})
 
-  (app/schedule-render! APP )
+  (app/schedule-render! APP)
 
   )
-
 
 
 
@@ -65,7 +83,7 @@
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (js/console.log "[Person] MOUNTED" p)))}
+                          (clog {:message "[Person] MOUNTED" :props p})))}
   (js/console.log "[Person] UPDATED" props)
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
@@ -103,7 +121,7 @@
 
 
 
-  (app/schedule-render! APP )
+  (app/schedule-render! APP)
 
   )
 
@@ -111,11 +129,12 @@
 ;;===== Root Component =======================================
 
 (defsc Root [this {:keys [:root] :as props}]
-  {#_#_:query             []
-   #_#_:initial-state     {}
+  {#_#_:query []
+   #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (js/console.log "[Root] MOUNTED" p)))}
+                          (js/console.log "[APP] Last ROOT Mount: \n" (js/Date.))
+                          (clog {:message "[Root] MOUNTED" :props p})))}
   (js/console.log "[Root] UPDATED" props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")
@@ -153,7 +172,6 @@
 
 
   (app/schedule-render! APP {:force-root? true})
-
 
   )
 
@@ -213,6 +231,9 @@
 
 
   (.clear js/console)
+
+
+
 
 
   (app/schedule-render! APP {:force-root? true})
