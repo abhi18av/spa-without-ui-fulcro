@@ -10,6 +10,52 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;===== Car Component =======================================
+
+(defsc Car [this {:keys [:car/id :car/model] :as props}]
+  {#_#_:query []
+   #_#_:initial-state {}
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (js/console.log "[Car] MOUNTED" p)))}
+  (js/console.log "[Car] UPDATED" props)
+  (js/console.log "[Car] id" id)
+  (js/console.log "[Car] model" model)
+  (dom/div))
+
+(def ui-car (comp/factory Car {:keyfn :car/id}))
+
+
+(comment
+
+  (comp/get-query Car)
+
+  (comp/get-initial-state Car)
+
+  (comp/props Car)
+
+  (comp/get-ident Car {:root {:person/id   1
+                                 :person/name "Joe"
+                                 :person/cars [{:car/id    22
+                                                :car/model "Escort"}]}})
+
+  (-> APP
+      (::app/state-atom)
+      deref)
+
+
+  (reset! (::app/state-atom APP) {})
+
+  (reset! (::app/state-atom APP) {:root {:person/id   1
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id    22
+                                                        :car/model "Escort"}]}})
+
+  (app/schedule-render! APP )
+
+  )
+
+
 
 
 ;;===== Person Component =======================================
@@ -23,7 +69,8 @@
   (js/console.log "[Person] UPDATED" props)
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
-  (dom/div))
+  (dom/div
+    (dom/div (ui-car props))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
@@ -56,9 +103,7 @@
 
 
 
-  (app/schedule-render! APP {:force-root? true})
-
-
+  (app/schedule-render! APP )
 
   )
 
@@ -90,6 +135,24 @@
 
 
   (comp/props Root)
+
+  (-> APP
+      (::app/state-atom)
+      deref)
+
+
+  (reset! (::app/state-atom APP) {})
+
+  (reset! (::app/state-atom APP) {:root {:person/id   1
+                                         :person/name "Joe"
+                                         :person/cars [{:car/id    22
+                                                        :car/model "Escort"}]}})
+
+
+
+
+  (app/schedule-render! APP {:force-root? true})
+
 
   )
 
