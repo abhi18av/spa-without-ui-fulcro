@@ -11,7 +11,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;
+;;===== ROOT Component =======================================
 
 (defsc Root [this {:root/keys [] :as people}]
   {:query             []
@@ -22,10 +22,50 @@
   (dom/div
     (dom/h1 "Hello, Fulcro!")))
 
+
+
+(comment
+
+
+  (comp/get-query Root)
+
+  (comp/get-initial-state Root)
+
+  ;; Root has NO ident
+  (comp/get-ident Root )
+
+  )
+
+
+
+;;===== FULCRO APP INIT =======================================
+
+
 (defonce APP (app/fulcro-app))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))
+
+
+
+
+(comment
+
+  (-> APP
+      (::app/state-atom)
+      deref)
+
+  (keys APP)
+
+  (::app/state-atom APP)
+  (::app/algorithms APP)
+  (:com.fulcrologic.fulcro.application/runtime-atom APP)
+  (:com.fulcrologic.fulcro.application/config APP)
+
+  )
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; COMMENTS
@@ -49,9 +89,11 @@
   ;; js hard reset
   (.reload js/location true)
 
-  (app/schedule-render! APP {:force-root? true})
 
-  ;;====== APP state atom ======
+  (.clear js/console)
+
+
+  (app/schedule-render! APP {:force-root? true})
 
   (-> APP
       (::app/state-atom)
