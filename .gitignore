@@ -7,5 +7,4 @@ classes/
 minimal-fulcro-app.iml
 .rebel_readline_history
 /secrets.edn
-/src/app/spotify.cljs
-src/app/scratch_spotify.clj
+/src/app/secrets.cljc
