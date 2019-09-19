@@ -77,6 +77,66 @@
                                    :person/cars [{:car/id    02
                                                   :car/model "Sally-1"}]})
 
+  (app/schedule-render! APP)
+
+  )
+
+
+;;===== Address Component =======================================
+;; TODO How to add this component in the same manner as the car component?
+(defsc Address [this {:keys [:address/id :address/state] :as props}]
+  {:query             [:address/id :address/state]
+   :ident             :address/id
+   #_#_:initial-state {}
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (clog {:message "[Address] MOUNTED" :props p})))}
+  (js/console.log "[Address] UPDATED" props)
+  (js/console.log "[Address] id" id)
+  (js/console.log "[Address] state" state)
+  (dom/div))
+
+(def ui-address (comp/factory Address {:keyfn :address/id}))
+
+
+(comment
+
+  (comp/get-query Address)
+
+  (comp/get-initial-state Address)
+
+  (comp/props Address)
+
+  (comp/get-ident Address {:root {:person/id      1
+                                  :person/name    "Joe"
+                                  :person/address {:address/id    01
+                                                   :address/state "Joe-1"}
+                                  :person/cars    [{:car/id    01
+                                                    :car/model "Joe-1"}]}})
+
+
+  (-> APP
+      (::app/state-atom)
+      deref)
+
+
+  (reset! (::app/state-atom APP) {})
+
+
+  (reset! (::app/state-atom APP) {:root {:person/id        1
+                                         :person/name      "Joe"
+                                         :person/addresses {:address/id    01
+                                                            :address/state "Joe-1"}
+                                         :person/cars      [{:car/id    01
+                                                             :car/model "Joe-1"}]}})
+
+
+  (merge/merge-component! APP Address {:person/id        2
+                                       :person/name      "Sally"
+                                       :person/addresses {:address/id    02
+                                                          :address/state "Sally-1"}
+                                       :person/cars      [{:car/id    02
+                                                           :car/model "Sally-1"}]})
 
 
   (app/schedule-render! APP)
@@ -85,10 +145,13 @@
 
 
 
+
 ;;===== Person Component =======================================
 
-(defsc Person [this {:keys [:person/id :person/name :person/cars] :as props}]
-  {:query             [:person/id :person/name {:person/cars (comp/get-query Car)}]
+(defsc Person [this {:keys [:person/id :person/name :person/cars #_:person/addresses] :as props}]
+  {:query             [:person/id :person/name
+                       {:person/cars (comp/get-query Car)}
+                       #_{:person/addresses (comp/get-query Address)}]
    :ident             :person/id
    :initial-state     {}
    :componentDidMount (fn [this]
@@ -99,7 +162,8 @@
   (js/console.log "[Person] name" name)
   (dom/div
     ;; I'm sending to Car the value associated with the cars key
-    (dom/div (map ui-car cars))))
+    (dom/div (map ui-car cars))
+    #_(dom/div (map ui-address addresses))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
 
@@ -160,7 +224,7 @@
    #_#_:initial-state {}
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (clog {:message "[APP] Last ROOT Mount:" :props (js/Date.)})))}
+                          (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.)})))}
   (js/console.log "[Root] UPDATED" props)
   (dom/div
     (dom/h1 "Hello, Fulcro!")
