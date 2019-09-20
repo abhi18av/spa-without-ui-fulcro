@@ -4,6 +4,7 @@
     ["react-number-format" :as NumberFormat]
     ;; internal libs
     [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
+    [com.fulcrologic.fulcro.rendering.keyframe-render :as keyframe]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
@@ -53,16 +54,18 @@
 ;;===== Car Component =======================================
 
 (defsc Car [this {:keys [:car/id :car/model] :as props}]
-  {:query             [:car/id :car/model]
-   :ident             :car/id
-   :initial-state     {:car/id    :param/id
-                       :car/model :param/model}
-   :initLocalState    (fn [this]
-                        (clog {:message "[Car] InitLocalState"}))
-   :random-data       "This is some random data"
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          (clog {:message "[Car] MOUNTED" :props p})))}
+  {:query                 [:car/id :car/model]
+   :ident                 :car/id
+   :initial-state         {:car/id    :param/id
+                           :car/model :param/model}
+
+   :shouldComponentUpdate (fn [] true)
+   :initLocalState        (fn [this]
+                            (clog {:message "[Car] InitLocalState"}))
+   :random-data           "This is some random data"
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              (clog {:message "[Car] MOUNTED" :props p})))}
   (clog {:message "[Car] UPDATED" :color "blue" :props props})
   (js/console.log "[Car] id" id)
   (js/console.log "[Car] model" model)
@@ -100,20 +103,22 @@
 
 
 (defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
-  {:query             [:person/id :person/name :person/age
-                       {:person/cars (comp/get-query Car)}
-                       #_{:person/addresses (comp/get-query Address)}]
-   :ident             :person/id
-   :initial-state     {:person/id   :param/id
-                       :person/name :param/name
-                       :person/age  20
-                       :person/cars [{:id 1 :model "Leaf"}
-                                     {:id 2 :model "Escort"}]}
-   :initLocalState    (fn [this]
-                        (clog {:message "[Person] InitLocalState"}))
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          (clog {:message "[Person] MOUNTED" :props p})))}
+  {:query                 [:person/id :person/name :person/age
+                           {:person/cars (comp/get-query Car)}
+                           #_{:person/addresses (comp/get-query Address)}]
+   :ident                 :person/id
+   :initial-state         {:person/id   :param/id
+                           :person/name :param/name
+                           :person/age  20
+                           :person/cars [{:id 1 :model "Leaf"}
+                                         {:id 2 :model "Escort"}]}
+
+   :shouldComponentUpdate (fn [] true)
+   :initLocalState        (fn [this]
+                            (clog {:message "[Person] InitLocalState"}))
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              (clog {:message "[Person] MOUNTED" :props p})))}
   (clog {:message "[Person] UPDATED" :color "blue" :props props})
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
@@ -152,18 +157,20 @@
 
 ;; a client only component ID  - no server identity
 (defsc PersonList [this {:keys [:person-list/people] :as props}]
-  {:query             [{:person-list/people (comp/get-query Person)}]
+  {:query                 [{:person-list/people (comp/get-query Person)}]
    ;; singleton components only have a single rep in the app db
    ;; for those we created a new table called component/id
-   :ident             (fn [_ _]
-                        [:component/id ::person-list])
-   :initial-state     {:person-list/people [{:id 1 :name "Joe"}
-                                            {:id 2 :name "Sally"}]} ;; the {} join ends up fetching the initial state of a Person
-   :initLocalState    (fn [this]
-                        (clog {:message "[PersonList] InitLocalState"}))
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          (clog {:message "[PersonList] MOUNTED" :props p})))}
+   :ident                 (fn [_ _]
+                            [:component/id ::person-list])
+   :initial-state         {:person-list/people [{:id 1 :name "Joe"}
+                                                {:id 2 :name "Sally"}]} ;; the {} join ends up fetching the initial state of a Person
+
+   :shouldComponentUpdate (fn [] true)
+   :initLocalState        (fn [this]
+                            (clog {:message "[PersonList] InitLocalState"}))
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              (clog {:message "[PersonList] MOUNTED" :props p})))}
   (clog {:message "[PersonList] UPDATED" :color "blue" :props props})
   (dom/div
     (map ui-person people)))
@@ -193,13 +200,14 @@
 ;;===== Root Component =======================================
 
 (defsc Root [this {:keys [:root] :as props}]
-  {:query             [{:root (comp/get-query PersonList)}]
-   :initial-state     {:root {}}
-   :initLocalState    (fn [this]
-                        (clog {:message "[ROOT]: InitLocalState"}))
-   :componentDidMount (fn [this]
-                        (let [p (comp/props this)]
-                          (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.) :color "purple"})))}
+  {:query                 [{:root (comp/get-query PersonList)}]
+   :initial-state         {:root {}}
+   :shouldComponentUpdate (fn [] true)
+   :initLocalState        (fn [this]
+                            (clog {:message "[ROOT]: InitLocalState"}))
+   :componentDidMount     (fn [this]
+                            (let [p (comp/props this)]
+                              (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.) :color "purple"})))}
   (clog {:message "[Root] UPDATED" :color "blue" :props props})
   (dom/div
     (dom/h1 "Hello, Fulcro!")
@@ -228,7 +236,7 @@
 ;;===== FULCRO APP INIT =======================================
 
 
-(defonce APP (app/fulcro-app))
+(defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))
