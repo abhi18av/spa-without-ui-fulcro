@@ -11,7 +11,8 @@
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
-    [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]))
+    [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]
+    [com.fulcrologic.fulcro.algorithms.denormalize :as fdn]))
 
 ;;;;;;;; COMPONENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -141,6 +142,12 @@
   (map comp/get-ident
        (get-components-that-query-for-a-prop APP :person/name))
 
+  (let [state (app/current-state APP)
+        component-query (comp/get-query Person)
+        component-ident [:person/id 1]
+        starting-entity (get-in state component-ident)]
+    (fdn/db->tree component-query starting-entity state))
+
   )
 
 
@@ -226,7 +233,7 @@
 ;;===== FULCRO APP INIT =======================================
 
 
-(defonce APP (app/fulcro-app {:optimized-render! keyframe/render!}))
+(defonce APP (app/fulcro-app #_{:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))
