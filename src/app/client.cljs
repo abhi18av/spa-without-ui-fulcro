@@ -1,7 +1,9 @@
 (ns app.client
   (:require
     ;; external libs
+    ["react-number-format" :as NumberFormat]
     ;; internal libs
+    [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
@@ -27,6 +29,25 @@
 
 
 ;;;;;;;; COMPONENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;===== Number Format =======================================
+
+(def ui-number-format (interop/react-factory NumberFormat))
+
+
+(comment
+
+  (comp/get-query NumberFormat)
+
+  (comp/get-initial-state NumberFormat)
+
+  (comp/component-options NumberFormat)
+
+  @(::app/state-atom APP)
+
+  )
 
 
 ;;===== Car Component =======================================
@@ -66,8 +87,6 @@
   )
 
 
-
-
 ;;===== Person Component =======================================
 
 (defmutation make-older [{:keys [:person/id]}]
@@ -102,6 +121,8 @@
   (dom/div
     ;; I'm sending to Car the value associated with the cars key
     (dom/div (map ui-car cars))
+    #_(ui-number-format {:thousandSeparator true
+                       :prefix "$"})
     #_(dom/div (map ui-address addresses))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
