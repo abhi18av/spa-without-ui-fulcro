@@ -79,9 +79,18 @@
           (swap! state update-in [:person/id id :person/age] inc)))
 
 (comment
+  ;; to make this refresh the person-list, switch to keyframe-render
   (comp/transact! APP [(make-older {:person/id 1})])
-  )
 
+  ;; this does not update :person-list - why?
+  (comp/transact! APP [(make-older {:person/id 2})]
+                  {:refresh [;; refresh anything looking at :person/id 2
+                             [:person/id 2]]})
+
+  ;; Via ident-render, this one explicitely tell the UI to also update the parent component
+  (comp/transact! APP [(make-older {:person/id 2})]
+                  {:refresh [:person-list/people]})
+  )
 
 (defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
   {:query             [:person/id :person/name :person/age
@@ -92,7 +101,7 @@
                        :person/name :param/name
                        :person/age  20
                        :person/cars [{:id 1 :model "Leaf"}
-                                     {:id 2 :model "Escort"}]}
+                                     #_{:id 2 :model "Escort"}]}
    :initLocalState    (fn [this]
                         (clog {:message "[Person] InitLocalState" :color "orange"}))
    :componentDidMount (fn [this]
@@ -142,6 +151,7 @@
   (map comp/get-ident
        (get-components-that-query-for-a-prop APP :person/name))
 
+  ;; this is an overview of how the ident-optimized render is designed
   (let [state (app/current-state APP)
         component-query (comp/get-query Person)
         component-ident [:person/id 1]
@@ -170,8 +180,16 @@
                         (let [p (comp/props this)]
                           (clog {:message "[PersonList] MOUNTED" :props p})))}
   (clog {:message "[PersonList] UPDATED" :color "blue" :props props})
-  (dom/div
-    (map ui-person people)))
+  (let [cnt (reduce (fn [c {:person/keys [age]}]
+                      (if (> age 25)
+                        (inc c)
+                        c))
+                    0
+                    people)]
+
+    (dom/div
+      (js/console.log "OVER 25: " cnt)
+      (map ui-person people))))
 
 (def ui-person-list (comp/factory PersonList #_{:keyfn :person/id}))
 
