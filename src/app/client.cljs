@@ -18,12 +18,12 @@
 
 #_(js/console.log "%cExtra Large Yellow Text with Red Background", "background: red; color: yellow; font-size: large")
 
-(defn clog [{:keys [message props] :or {message "Hello, World!" props {}}}]
-  (js/console.log (str "%c" message), "color: green ; font-weight: bold; font-size: small;")
+(defn clog [{:keys [message props color] :or {message "Hello, World!" color "green" props {}}}]
+  (js/console.log (str "%c" message), (str "color: " color "; font-weight: bold; font-size: small;"))
   (js/console.log props))
 
 (comment
-  (clog {:message "Hello, CLog"})
+  (clog {:message "Hello, CLog" :color "blue"})
   )
 
 
@@ -63,7 +63,7 @@
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Car] MOUNTED" :props p})))}
-  (js/console.log "[Car] UPDATED" props)
+  (clog {:message "[Car] UPDATED" :color "blue" :props props})
   (js/console.log "[Car] id" id)
   (js/console.log "[Car] model" model)
   (dom/div))
@@ -91,7 +91,7 @@
 
 (defmutation make-older [{:keys [:person/id]}]
   (action [{:keys [state]}]
-          (js/console.log "[PERSON] MUTATION make-older" state)
+          (clog {:message "[PERSON] MUTATION make-older" :color "magenta" :props state})
           (swap! state update-in [:person/id id :person/age] inc)))
 
 (comment
@@ -114,7 +114,7 @@
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
-  (js/console.log "[Person] UPDATED" props)
+  (clog {:message "[Person] UPDATED" :color "blue" :props props})
   (js/console.log "[Person] id" id)
   (js/console.log "[Person] name" name)
   (js/console.log "[Person] age" age)
@@ -122,7 +122,7 @@
     ;; I'm sending to Car the value associated with the cars key
     (dom/div (map ui-car cars))
     #_(ui-number-format {:thousandSeparator true
-                       :prefix "$"})
+                         :prefix            "$"})
     #_(dom/div (map ui-address addresses))))
 
 (def ui-person (comp/factory Person {:keyfn :person/id}))
@@ -164,7 +164,7 @@
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[PersonList] MOUNTED" :props p})))}
-  (js/console.log "[PersonList] UPDATED" props)
+  (clog {:message "[PersonList] UPDATED" :color "blue" :props props})
   (dom/div
     (map ui-person people)))
 
@@ -196,11 +196,11 @@
   {:query             [{:root (comp/get-query PersonList)}]
    :initial-state     {:root {}}
    :initLocalState    (fn [this]
-                        (clog {:message "[APP] ROOT: InitLocalState"}))
+                        (clog {:message "[ROOT]: InitLocalState"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
-                          (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.)})))}
-  (js/console.log "[Root] UPDATED" props)
+                          (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.) :color "purple"})))}
+  (clog {:message "[Root] UPDATED" :color "blue" :props props})
   (dom/div
     (dom/h1 "Hello, Fulcro!")
     (dom/div
