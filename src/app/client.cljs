@@ -84,8 +84,7 @@
   {:query             [:person/id :person/name :person/age
                        {:person/cars (comp/get-query Car)}
                        #_{:person/addresses (comp/get-query Address)}]
-   ;; added a [TABLE ID] for and this adds a new :PEOPLE table in the App DB
-   :ident             [:PEOPLE :person/id]
+   :ident             :person/id
    :initial-state     {:person/id   :param/id
                        :person/name :param/name
                        :person/age  20
@@ -132,16 +131,21 @@
 
 ;; a client only component ID  - no server identity
 (defsc PersonList [this {:keys [:person-list/people] :as props}]
-  {:query             [:person-list/people #_{:person/cars (comp/get-query Car)}]
-   :ident             :person-list/people
-   :initial-state     {}
+  {:query             [{:person-list/people (comp/get-query Person)}]
+   ;; singleton components only have a single rep in the app db
+   ;; for those we created a new table called component/id
+   :ident             (fn [_ _]
+                        [:component/id ::person-list])
+   :initial-state     {:person-list/people [{:id 1 :name "Joe"}
+                                            {:id 2 :name "Sally"}]} ;; the {} join ends up fetching the initial state of a Person
    :initLocalState    (fn [this]
                         (clog {:message "[PersonList] InitLocalState"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[PersonList] MOUNTED" :props p})))}
   (js/console.log "[PersonList] UPDATED" props)
-  (dom/div))
+  (dom/div
+    (map ui-person people)))
 
 (def ui-person-list (comp/factory PersonList #_{:keyfn :person/id}))
 
@@ -168,8 +172,8 @@
 ;;===== Root Component =======================================
 
 (defsc Root [this {:keys [:root] :as props}]
-  {:query             [{:root (comp/get-query Person)}]
-   :initial-state     {:root {:id 1 :name "Joe"}}
+  {:query             [{:root (comp/get-query PersonList)}]
+   :initial-state     {:root {}}
    :initLocalState    (fn [this]
                         (clog {:message "[APP] ROOT: InitLocalState"}))
    :componentDidMount (fn [this]
@@ -180,7 +184,7 @@
     (dom/h1 "Hello, Fulcro!")
     (dom/div
       ;; I'm sending to Person the value associated with the root key
-      (ui-person root))))
+      (ui-person-list root))))
 
 
 
