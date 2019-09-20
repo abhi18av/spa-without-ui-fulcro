@@ -5,6 +5,7 @@
     ;; project libs
     [app.utils :refer [clog get-components-that-query-for-a-prop]]
     ;; internal libs
+    [com.fulcrologic.fulcro.networking.http-remote :as http]
     [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
     [com.fulcrologic.fulcro.rendering.keyframe-render :as keyframe]
     [com.fulcrologic.fulcro.application :as app]
@@ -251,7 +252,9 @@
 ;;===== FULCRO APP INIT =======================================
 
 
-(defonce APP (app/fulcro-app #_{:optimized-render! keyframe/render!}))
+(defonce APP (app/fulcro-app
+               {:remotes {:remote (http/fulcro-http-remote {})}}
+               #_{:optimized-render! keyframe/render!}))
 
 (defn ^:export init []
   (app/mount! APP Root "app"))

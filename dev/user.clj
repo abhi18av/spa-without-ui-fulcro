@@ -24,3 +24,8 @@
   (stop)
   (log/info "Reloading code")
   (tools-ns/refresh :after 'user/start))
+
+
+(comment
+  (println "Hello, User!"))
+

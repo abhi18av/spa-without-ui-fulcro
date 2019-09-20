@@ -32,3 +32,9 @@
                     (wrap-resource "public")
                     wrap-content-type
                     wrap-not-modified))
+
+
+(comment
+  (println "Hello, Clojure!"))
+
+
