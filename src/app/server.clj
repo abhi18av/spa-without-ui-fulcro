@@ -10,9 +10,11 @@
     [ring.middleware.not-modified :refer [wrap-not-modified]]
     [ring.middleware.resource :refer [wrap-resource]]))
 
+;; NOTE actually a vector of vectors as the car/resolvers is also defined as a vector
 (def my-resolvers [car/resolvers person/resolvers])
 
 ;; setup for a given connect system
+;; TODO port this to clojurescript to actually make use of the cljc models for car and person
 (def parser
   (p/parallel-parser
     {::p/env     {::p/reader                 [p/map-reader
