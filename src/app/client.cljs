@@ -84,7 +84,8 @@
   {:query             [:person/id :person/name :person/age
                        {:person/cars (comp/get-query Car)}
                        #_{:person/addresses (comp/get-query Address)}]
-   :ident             :person/id
+   ;; added a [TABLE ID] for and this adds a new :PEOPLE table in the App DB
+   :ident             [:PEOPLE :person/id]
    :initial-state     {:person/id   :param/id
                        :person/name :param/name
                        :person/age  20
@@ -123,6 +124,45 @@
   (app/schedule-render! APP)
 
   )
+
+
+
+;;===== PersonList Component =======================================
+
+
+;; a client only component ID  - no server identity
+(defsc PersonList [this {:keys [:person-list/people] :as props}]
+  {:query             [:person-list/people #_{:person/cars (comp/get-query Car)}]
+   :ident             :person-list/people
+   :initial-state     {}
+   :initLocalState    (fn [this]
+                        (clog {:message "[PersonList] InitLocalState"}))
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (clog {:message "[PersonList] MOUNTED" :props p})))}
+  (js/console.log "[PersonList] UPDATED" props)
+  (dom/div))
+
+(def ui-person-list (comp/factory PersonList #_{:keyfn :person/id}))
+
+(comment
+
+  (comp/get-query PersonList)
+
+  (comp/get-initial-state PersonList)
+
+  (comp/props PersonList)
+
+  @(::app/state-atom APP)
+
+  (app/current-state APP)
+
+  (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
+
+  (app/schedule-render! APP)
+
+  )
+
 
 
 ;;===== Root Component =======================================
