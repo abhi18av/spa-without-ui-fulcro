@@ -317,137 +317,80 @@
               (clog {:message "[PERSON] MUTATION make-older" :color "magenta" :props state})
               (swap! state update-in [:person/id id :person/age] inc)))
 
-  (comment
-    ;; to make this refresh the person-list, switch to keyframe-render
-    (comp/transact! APP [(make-older {:person/id 1})])
+  ;; this does not update :person-list - why?
+  (comp/transact! APP [(make-older {:person/id 2})]
+                  {:refresh [;; refresh anything looking at :person/id 2
+                             [:person/id 2]]})
 
-    ;; this does not update :person-list - why?
-    (comp/transact! APP [(make-older {:person/id 2})]
-                    {:refresh [;; refresh anything looking at :person/id 2
-                               [:person/id 2]]})
+  ;; Via ident-render, this one explicitely tell the UI to also update the parent component
+  (comp/transact! APP [(make-older {:person/id 2})]
+                  {:refresh [:person-list/people]})
+  )
 
-    ;; Via ident-render, this one explicitely tell the UI to also update the parent component
-    (comp/transact! APP [(make-older {:person/id 2})]
-                    {:refresh [:person-list/people]})
-    )
+(defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
+  {:query             [:person/id :person/name :person/age
+                       {:person/cars (comp/get-query Car)}
+                       #_{:person/addresses (comp/get-query Address)}]
+   :ident             :person/id
+   #_#_:initial-state {:person/id   :param/id
+                       :person/name :param/name
+                       :person/age  20
+                       :person/cars [{:id 1 :model "Leaf"}
+                                     #_{:id 2 :model "Escort"}]}
+   :initLocalState    (fn [this]
+                        (clog {:message "[Person] InitLocalState" :color "teal"}))
+   :componentDidMount (fn [this]
+                        (let [p (comp/props this)]
+                          (clog {:message "[Person] MOUNTED" :props p})))}
+  (clog {:message "[Person] UPDATED" :color "blue" :props props})
+  (js/console.log "[Person] id" id)
+  (js/console.log "[Person] name" name)
+  (js/console.log "[Person] age" age)
+  (dom/div
+    ;; I'm sending to Car the value associated with the cars key
+    (dom/div (map ui-car cars))
+    #_(ui-number-format {:thousandSeparator true
+                         :prefix            "$"})
+    #_(dom/div (map ui-address addresses))))
 
-  (defsc Person [this {:keys [:person/id :person/name :person/age :person/cars #_:person/addresses] :as props}]
-    {:query             [:person/id :person/name :person/age
-                         {:person/cars (comp/get-query Car)}
-                         #_{:person/addresses (comp/get-query Address)}]
-     :ident             :person/id
-     #_#_:initial-state {:person/id   :param/id
-                         :person/name :param/name
-                         :person/age  20
-                         :person/cars [{:id 1 :model "Leaf"}
-                                       #_{:id 2 :model "Escort"}]}
-     :initLocalState    (fn [this]
-                          (clog {:message "[Person] InitLocalState" :color "teal"}))
-     :componentDidMount (fn [this]
-                          (let [p (comp/props this)]
-                            (clog {:message "[Person] MOUNTED" :props p})))}
-    (clog {:message "[Person] UPDATED" :color "blue" :props props})
-    (js/console.log "[Person] id" id)
-    (js/console.log "[Person] name" name)
-    (js/console.log "[Person] age" age)
-    (dom/div
-      ;; I'm sending to Car the value associated with the cars key
-      (dom/div (map ui-car cars))
-      #_(ui-number-format {:thousandSeparator true
-                           :prefix            "$"})
-      #_(dom/div (map ui-address addresses))))
+(def ui-person (comp/factory Person {:keyfn :person/id}))
 
-  (def ui-person (comp/factory Person {:keyfn :person/id}))
+(comment
 
-  (comment
+  (comp/get-query Person)
 
-    (comp/get-query Person)
+  (comp/get-initial-state Person)
 
-    (comp/get-initial-state Person)
+  (comp/props Person)
 
-    (comp/props Person)
+  @(::app/state-atom APP)
 
-    @(::app/state-atom APP)
+  (app/current-state APP)
 
-    (app/current-state APP)
+  (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
 
-    (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
+  (app/schedule-render! APP)
 
-    (app/schedule-render! APP)
+  (comp/class->all APP Person)
 
-    (comp/class->all APP Person)
+  ;;any one of the class->all outputs
+  (comp/class->any APP Person)
 
-    ;;any one of the class->all outputs
-    (comp/class->any APP Person)
+  (comp/prop->classes APP :person/id)
 
-    (comp/prop->classes APP :person/id)
+  (comp/prop->classes APP :person/age)
 
-    (comp/prop->classes APP :person/age)
+  (map comp/get-ident
+       (get-components-that-query-for-a-prop APP :person/name))
 
-    (map comp/get-ident
-         (get-components-that-query-for-a-prop APP :person/name))
+  (map comp/get-ident
+       (get-components-that-query-for-a-prop APP :person/name))
 
-    (map comp/get-ident
-         (get-components-that-query-for-a-prop APP :person/name))
-
-    ;; this is an overview of how the ident-optimized render is designed
-    (let [state (app/current-state APP)
-          component-query (comp/get-query Person)
-          component-ident [:person/id 1]
-          starting-entity (get-in state component-ident)]
-      (fdn/db->tree component-query starting-entity state))
-
-    )
-
-
-
-  ;;===== PersonList Component =======================================
-
-
-  ;; a client only component ID  - no server identity
-  (defsc PersonList [this {:keys [:person-list/people] :as props}]
-    {:query             [{:person-list/people (comp/get-query Person)}]
-     ;; singleton components only have a single rep in the app db
-     ;; for those we created a new table called component/id
-     :ident             (fn [_ _]
-                          [:component/id ::person-list])
-     #_#_:initial-state {:person-list/people [{:id 1 :name "Joe"}
-                                              {:id 2 :name "Sally"}]} ;; the {} join ends up fetching the initial state of a Person
-     :initLocalState    (fn [this]
-                          (clog {:message "[PersonList] InitLocalState" :color "teal"}))
-     :componentDidMount (fn [this]
-                          (let [p (comp/props this)]
-                            (clog {:message "[PersonList] MOUNTED" :props p})))}
-    (clog {:message "[PersonList] UPDATED" :color "blue" :props props})
-    (let [cnt (reduce (fn [c {:person/keys [age]}]
-                        (if (> age 25)
-                          (inc c)
-                          c))
-                      0
-                      people)]
-
-      (dom/div
-        (js/console.log "People with age over 25: " cnt)
-        (map ui-person people))))
-
-  (def ui-person-list (comp/factory PersonList #_{:keyfn :person/id}))
-
-  (comment
-
-    (comp/get-query PersonList)
-
-    (comp/get-initial-state PersonList)
-
-    (comp/props PersonList)
-
-    @(::app/state-atom APP)
-
-    (app/current-state APP)
-
-    (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
-
-    (app/schedule-render! APP)
-
-    )
+  ;; this is an overview of how the ident-optimized render is designed
+  (let [state (app/current-state APP)
+        component-query (comp/get-query Person)
+        component-ident [:person/id 1]
+        starting-entity (get-in state component-ident)]
+    (fdn/db->tree component-query starting-entity state))
 
   )

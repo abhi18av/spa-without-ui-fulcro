@@ -22,10 +22,10 @@
   {::pc/input  #{:person/id}
    ::pc/output [:person/name :person/age {:person/cars [:car/id]}]}
   (let [person (-> @people
-                 (get id)
-                 (update :person/cars (fn [ids] (mapv
-                                                  (fn [id] {:car/id id})
-                                                  ids))))]
+                   (get id)
+                   (update :person/cars (fn [ids] (mapv
+                                                    (fn [id] {:car/id id})
+                                                    ids))))]
     person))
 
 (pc/defresolver all-people-resolver [env {:person/keys [id]}]
@@ -42,6 +42,10 @@
    ::pc/output []}
   (swap! people update-in [id :person/age] inc)
   {})
+
+(comment
+  ;; to make this refresh the person-list, switch to keyframe-render
+  (comp/transact! APP [(make-older {:person/id 1})]))
 
 (pc/defmutation select-person [env {:person/keys [id]}]
   {::pc/params [:person/id]}
