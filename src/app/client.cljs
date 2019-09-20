@@ -41,7 +41,7 @@
    :initial-state     {:car/id    :param/id
                        :car/model :param/model}
    :initLocalState    (fn [this]
-                        (clog {:message "[Car] InitLocalState"}))
+                        (clog {:message "[Car] InitLocalState" :color "orange"}))
    :random-data       "This is some random data"
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
@@ -93,7 +93,7 @@
                        :person/cars [{:id 1 :model "Leaf"}
                                      {:id 2 :model "Escort"}]}
    :initLocalState    (fn [this]
-                        (clog {:message "[Person] InitLocalState"}))
+                        (clog {:message "[Person] InitLocalState" :color "orange"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[Person] MOUNTED" :props p})))}
@@ -158,7 +158,7 @@
    :initial-state     {:person-list/people [{:id 1 :name "Joe"}
                                             {:id 2 :name "Sally"}]} ;; the {} join ends up fetching the initial state of a Person
    :initLocalState    (fn [this]
-                        (clog {:message "[PersonList] InitLocalState"}))
+                        (clog {:message "[PersonList] InitLocalState" :color "orange"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[PersonList] MOUNTED" :props p})))}
@@ -194,7 +194,7 @@
   {:query             [{:root (comp/get-query PersonList)}]
    :initial-state     {:root {}}
    :initLocalState    (fn [this]
-                        (clog {:message "[ROOT]: InitLocalState"}))
+                        (clog {:message "[ROOT]: InitLocalState" :color "orange"}))
    :componentDidMount (fn [this]
                         (let [p (comp/props this)]
                           (clog {:message "[APP] ROOT Mount TimeStamp:" :props (js/Date.) :color "purple"})))}
