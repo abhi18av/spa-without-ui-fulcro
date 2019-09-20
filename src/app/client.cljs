@@ -2,6 +2,8 @@
   (:require
     ;; external libs
     ["react-number-format" :as NumberFormat]
+    ;; project libs
+    [app.utils :refer [clog get-components-that-query-for-a-prop]]
     ;; internal libs
     [com.fulcrologic.fulcro.algorithms.react-interop :as interop]
     [com.fulcrologic.fulcro.rendering.keyframe-render :as keyframe]
@@ -11,27 +13,7 @@
     [com.fulcrologic.fulcro.algorithms.merge :as merge]
     [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]]))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;===== UTILS=======================================
-
-
-
-#_(js/console.log "%cExtra Large Yellow Text with Red Background", "background: red; color: yellow; font-size: large")
-
-(defn clog [{:keys [message props color] :or {message "Hello, World!" color "green" props {}}}]
-  (js/console.log (str "%c" message), (str "color: " color "; font-weight: bold; font-size: small;"))
-  (js/console.log props))
-
-(comment
-  (clog {:message "Hello, CLog" :color "blue"})
-  )
-
-
-
 ;;;;;;;; COMPONENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 
 ;;===== Number Format =======================================
 
@@ -143,6 +125,21 @@
   (swap! (::app/state-atom APP) assoc-in [:person/id 3 :person/age] 18)
 
   (app/schedule-render! APP)
+
+  (comp/class->all APP Person)
+
+  ;;any one of the class->all outputs
+  (comp/class->any APP Person)
+
+  (comp/prop->classes APP :person/id)
+
+  (comp/prop->classes APP :person/age)
+
+  (map comp/get-ident
+       (get-components-that-query-for-a-prop APP :person/name))
+
+  (map comp/get-ident
+       (get-components-that-query-for-a-prop APP :person/name))
 
   )
 
@@ -322,15 +319,6 @@
 
   (reset! (::app/state-atom APP) {})
 
-
-
-  (defn get-components-that-query-for-a-prop
-    [prop]
-    (reduce (fn [mounted-instances cls]
-              (concat mounted-instances
-                      (comp/class->all APP (comp/registry-key->class cls))))
-            []
-            (comp/prop->classes APP prop)))
 
 
 
