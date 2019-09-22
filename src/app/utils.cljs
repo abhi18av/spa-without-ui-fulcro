@@ -8,7 +8,10 @@
 
 #_(js/console.log "%cExtra Large Yellow Text with Red Background", "background: red; color: yellow; font-size: large")
 
-(defn clog [{:keys [message props color] :or {message "Hello, World!" color "green" props {}}}]
+(defn clog
+"The colors have been taken from https://developer.mozilla.org/en-US/docs/Web/CSS/color_value
+"
+[{:keys [message props color] :or {message "Hello, World!" color "green" props {}}}]
   (js/console.log (str "%c" message), (str "color: " color "; font-weight: bold; font-size: small;"))
   (js/console.log props))
 

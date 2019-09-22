@@ -195,7 +195,7 @@
     (dom/div
       ;; I'm sending to Person the value associated with the root key
       #_(ui-person-list root)
-      (ui-person-picker person-picker))))
+      #_(ui-person-picker person-picker))))
 
 
 
@@ -276,39 +276,6 @@
 
 
 (comment
-
-
-  ;;===== PersonDetail Component =======================================
-
-
-  (defsc PersonDetail [this {:person/keys [id name age cars] :as props}]
-    {:query [:person/id :person/name :person/age {:person/cars (comp/get-query Car)}]
-     :ident :person/id}
-    (let [onClick (comp/get-state this :onClick)]
-      #_(div :.ui.segment
-             (h3 :.ui.header "Selected Person")
-             (when id
-               (div :.ui.form
-                    (div :.field
-                         (label {:onClick onClick} "Name: ")
-                         name)
-                    (div :.field
-                         (label "Age: ")
-                         age)
-                    (button :.ui.button {:onClick (fn []
-                                                    (comp/transact! this
-                                                                    [(make-older {:person/id id})]
-                                                                    {:refresh [:person-list/people]}))}
-                            "Make Older")
-                    (h3 {} "Cars")
-                    (ul {}
-                        (map ui-car cars)))))))
-
-  (def ui-person-detail (comp/factory PersonDetail {:keyfn :person/id}))
-
-  (comment
-    (df/load! APP [:person/id 1] PersonDetail))
-
 
   ;;===== Person Component =======================================
   ;; NOTE moved this to the model.person ns

@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]
             [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.connect :as pc]
-            [com.wsscode.pathom.connect.youtube.helpers :as yth]
+            [app.youtube-scratch.youtube.helpers :as yth]
             [goog.string :as gstr]))
 
 (def channel-output
@@ -105,27 +105,27 @@
 
 (def channel-by-id
   (pc/resolver `channel-by-id
-    {::pc/input  #{:youtube.channel/id}
-     ::pc/output channel-output
-     ::pc/batch? true}
-    (pc/batch-resolver
-      (fn [env ids]
-        (go-catch
-          (->> (yth/youtube-api env "channels"
-                 {:id   (str/join "," (map :youtube.channel/id ids))
-                  :part (yth/request-parts env "youtube.channel")}) <?
-               :items
-               (mapv adapt-channel)
-               (pc/batch-restore-sort {::pc/inputs ids
-                                       ::pc/key    :youtube.channel/id})))))))
+               {::pc/input  #{:youtube.channel/id}
+                ::pc/output channel-output
+                ::pc/batch? true}
+               (pc/batch-resolver
+                 (fn [env ids]
+                   (go-catch
+                     (->> (yth/youtube-api env "channels"
+                                           {:id   (str/join "," (map :youtube.channel/id ids))
+                                            :part (yth/request-parts env "youtube.channel")}) <?
+                          :items
+                          (mapv adapt-channel)
+                          (pc/batch-restore-sort {::pc/inputs ids
+                                                  ::pc/key    :youtube.channel/id})))))))
 
 (pc/defresolver channel-by-username [env {:keys [youtube.user/username]}]
   {::pc/input  #{:youtube.user/username}
    ::pc/output channel-output}
   (go-catch
     (-> (yth/youtube-api env "channels"
-          {:forUsername username
-           :part        (yth/request-parts env "youtube.channel")}) <?
+                         {:forUsername username
+                          :part        (yth/request-parts env "youtube.channel")}) <?
         :items
         first
         adapt-channel)))
