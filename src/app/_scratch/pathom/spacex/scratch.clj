@@ -67,14 +67,40 @@
     (apply update m k f args)
     m))
 
+
+
 (defn adapt-core [core]
   (-> core
       (namespaced-keys "spacex.core")))
+
+
+(comment
+
+
+  (-> (http/request {:method  :get
+                     :url     "https://api.spacexdata.com/v3/cores/B1042"})
+      :body
+      json/read-str
+      adapt-core))
+
+
+
 
 (defn adapt-payload [payload]
   (-> payload
       (namespaced-keys "spacex.payload")
       (pull-namespaced :spacex.payload/orbit-params "spacex.payload.orbit-params")))
+
+
+(comment
+  (-> (http/request {:method  :get
+                     :url     "https://api.spacexdata.com/v3/payloads/Telkom-4"})
+      :body
+      json/read-str
+      adapt-payload))
+
+
+
 
 (defn adapt-rocket [rocket]
   (-> rocket
@@ -85,3 +111,12 @@
       (update-if :spacex.launch.second-stage/payloads #(mapv adapt-payload %))
       (pull-namespaced :spacex.rocket/fairings "spacex.launch.fairings")))
 
+
+
+(comment
+  (-> (http/request {:method  :get
+                     :url     "https://api.spacexdata.com/v3/rockets/falcon9"})
+      :body
+      println
+      json/read-str
+      adapt-rocket))
