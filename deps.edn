@@ -1,9 +1,11 @@
 {:paths   ["src" "resources"]
 
  :deps    {com.fulcrologic/fulcro {:mvn/version "3.0.0-beta-17"}
+           clj-http               {:mvn/version "3.10.0"}
            ring/ring-core         {:mvn/version "1.7.1"}
            http-kit               {:mvn/version "2.3.0"}
-           com.wsscode/pathom     {:mvn/version "2.2.25"}}
+           com.wsscode/pathom     {:mvn/version "2.2.25"}
+           org.clojure/data.json {:mvn/version "0.2.6"}}
 
  :aliases {:dev {:extra-paths ["dev"]
                  :extra-deps  {org.clojure/clojurescript   {:mvn/version "1.10.520"}

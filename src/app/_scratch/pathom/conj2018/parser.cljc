@@ -1,15 +1,19 @@
 ;region header
 (ns com.wsscode.conj2018demo.parser
-  (:require [clojure.core.async :refer [go timeout <! #?(:clj <!!)]]
-            [com.wsscode.pathom.connect :as pc]
-            [com.wsscode.pathom.connect.graphql :as pcg]
-            [com.wsscode.pathom.connect.spacex :as spacex]
-            [com.wsscode.pathom.connect.youtube :as youtube]
-            [com.wsscode.pathom.core :as p]
-            [com.wsscode.pathom.diplomat.http :as p.http]
-            #?(:clj  [com.wsscode.pathom.diplomat.http.clj-http :as p.http.clj]
-               :cljs [com.wsscode.pathom.diplomat.http.fetch :as p.http.fetch])
-            #?(:cljs [nubank.workspaces.lib.local-storage :as ls])))
+  (:require
+
+   [com.wsscode.pathom.connect.spacex :as spacex]
+   [com.wsscode.pathom.connect.youtube :as youtube]
+
+
+   [clojure.core.async :refer [go timeout <! #?(:clj <!!)]]
+   [com.wsscode.pathom.connect :as pc]
+   [com.wsscode.pathom.connect.graphql :as pcg]
+   [com.wsscode.pathom.core :as p]
+   [com.wsscode.pathom.diplomat.http :as p.http]
+   #?(:clj  [com.wsscode.pathom.diplomat.http.clj :as p.http.clj]
+      :cljs [com.wsscode.pathom.diplomat.http.fetch :as p.http.fetch])
+   #?(:cljs [nubank.workspaces.lib.local-storage :as ls])))
 
 (defonce gql-indexes (atom {}))
 
