@@ -181,6 +181,16 @@
          (mapv adapt-launch)
          (hash-map :spacex/all-launches))))
 
+(comment
+;; TODO doesn't work
+  (go-catch
+   (->> (p.http/request {} "https://api.spacexdata.com/v3/launches"
+                        {::p.http/accept ::p.http/json}) <?maybe
+        ::p.http/body
+        (mapv adapt-launch)
+        (hash-map :spacex/all-launches))))
+
+
 (pc/defresolver past-launches
   [env _]
   {::pc/output [{:spacex/past-launches launch-out}]}
@@ -276,9 +286,24 @@
                   p/trace-plugin]}))
 
 
+
+#?(:clj
+   (defn entity-parse [entity query]
+     (<!! (parser {::p/entity (atom entity)} query))))
+
+
+
+
+(comment
+  (entity-parse {}
+                [:spacex/all-launches]))
+
+
+
+
 (comment
 
- (parser {}
+ (entity-parse {}
   [{:spacex/all-launches
     [:spacex.launch/flight-number
      :spacex.launch.links/video-link]}]))
