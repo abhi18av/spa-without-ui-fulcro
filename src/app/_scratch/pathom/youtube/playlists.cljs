@@ -1,9 +1,9 @@
-(ns app.youtube-scratch.youtube.playlists
+(ns com.wsscode.pathom.connect.youtube.playlists
   (:require [clojure.string :as str]
             [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as pc]
-            [app.youtube-scratch.youtube.helpers :as yth]))
+            [com.wsscode.pathom.connect.youtube.helpers :as yth]))
 
 (def playlist-output
   [:youtube.playlist/kind
@@ -64,8 +64,8 @@
                   (fn [env ids]
                     (go-catch
                       (->> (yth/youtube-api env "playlists"
-                                            {:id   (str/join "," (map :youtube.playlist/id ids))
-                                             :part (yth/request-parts env "youtube.playlist")}) <?
+                             {:id   (str/join "," (map :youtube.playlist/id ids))
+                              :part (yth/request-parts env "youtube.playlist")}) <?
                            :items
                            (mapv adapt-playlist)
                            (pc/batch-restore-sort {::pc/inputs ids
@@ -76,11 +76,11 @@
    ::pc/output [{:youtube.channel/playlists playlist-output}]}
   (go-catch
     (->> (yth/youtube-api env "playlists"
-                          {:channelId id
-                           :part      (yth/request-parts
-                                        (assoc env ::yth/parts-query (-> env :ast :query)
-                                                   ::p/entity (yth/output->blank-entity playlist-output))
-                                        "youtube.playlist")}) <?
+           {:channelId id
+            :part      (yth/request-parts
+                         (assoc env ::yth/parts-query (-> env :ast :query)
+                                    ::p/entity (yth/output->blank-entity playlist-output))
+                         "youtube.playlist")}) <?
          :items
          (mapv adapt-playlist)
          (hash-map :youtube.channel/playlists))))
@@ -90,19 +90,19 @@
    ::pc/output [{:youtube.playlist/items playlist-item-output}]}
   (go-catch
     (->> (yth/youtube-api env "playlistItems"
-                          {:playlistId id
-                           :part       (yth/request-parts
-                                         (assoc env ::yth/parts-query (-> env :ast :query)
-                                                    ::p/entity (yth/output->blank-entity playlist-item-output))
-                                         "youtube.playlist-item")}) <?
+           {:playlistId id
+            :part       (yth/request-parts
+                          (assoc env ::yth/parts-query (-> env :ast :query)
+                                     ::p/entity (yth/output->blank-entity playlist-item-output))
+                          "youtube.playlist-item")}) <?
          :items
          (mapv adapt-playlist-item)
          (hash-map :youtube.playlist/items))))
 
 (defn resolver-alias [from to]
   (pc/resolver (symbol (munge (str from "-" to)))
-               {::pc/input #{from} ::pc/output [to]}
-               (fn [_ input] {to (get input from)})))
+    {::pc/input #{from} ::pc/output [to]}
+    (fn [_ input] {to (get input from)})))
 
 (def resolvers
   [playlist-by-id playlists-by-channel playlist-items-by-id

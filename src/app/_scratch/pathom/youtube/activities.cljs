@@ -1,7 +1,7 @@
-(ns app.youtube-scratch.youtube.activities
+(ns com.wsscode.pathom.connect.youtube.activities
   (:require [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.connect :as pc]
-            [app.youtube-scratch.youtube.helpers :as yth]
+            [com.wsscode.pathom.connect.youtube.helpers :as yth]
             [goog.string :as gstr]))
 
 (def activity-output-base
@@ -78,8 +78,8 @@
 
 (defn adapt-activity [activity]
   (let [activity' (yth/adapt-recursive activity "youtube.activity")
-        kind (:youtube.activity.snippet/type activity')
-        id-key (keyword (str "youtube." (gstr/toSelectorCase kind)) "id")]
+        kind      (:youtube.activity.snippet/type activity')
+        id-key    (keyword (str "youtube." (gstr/toSelectorCase kind)) "id")]
     (-> (yth/adapt-recursive activity "youtube.activity")
         (assoc id-key (:youtube.activity/id activity')))))
 
@@ -91,10 +91,10 @@
     (go-catch
       {:youtube.channel/activity
        (->> (yth/youtube-api env "activities"
-                             (cond->
-                               {:channelId id
-                                :part      "snippet,contentDetails"}
-                               max-results (assoc :maxResults max-results))) <?
+              (cond->
+                {:channelId id
+                 :part      "snippet,contentDetails"}
+                max-results (assoc :maxResults max-results))) <?
             :items
             (mapv adapt-activity))})))
 

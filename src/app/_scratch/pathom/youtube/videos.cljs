@@ -1,8 +1,8 @@
-(ns app.youtube-scratch.youtube.videos
+(ns com.wsscode.pathom.connect.youtube.videos
   (:require [clojure.string :as str]
             [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.connect :as pc]
-            [app.youtube-scratch.youtube.helpers :as yth]))
+            [com.wsscode.pathom.connect.youtube.helpers :as yth]))
 
 (def video-output
   [:youtube.video.localizations.key/title

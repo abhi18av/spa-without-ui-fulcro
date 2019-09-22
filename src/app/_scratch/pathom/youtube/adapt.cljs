@@ -1,4 +1,4 @@
-(ns app.youtube-scratch.adapt
+(ns com.wsscode.pathom.connect.adapt
   (:require [clojure.set :as set]))
 
 (defn set-ns

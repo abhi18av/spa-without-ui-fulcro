@@ -1,4 +1,4 @@
-(ns app.youtube-scratch.youtube.helpers
+(ns com.wsscode.pathom.connect.youtube.helpers
   (:require [clojure.string :as str]
             [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.core :as p]

@@ -1,8 +1,8 @@
-(ns app.youtube-scratch.youtube.search
+(ns com.wsscode.pathom.connect.youtube.search
   (:require [com.wsscode.common.async-cljs :refer [<? go-catch]]
             [com.wsscode.pathom.connect :as pc]
-            [app.youtube-scratch.youtube.helpers :as yth]
-            [app.youtube-scratch.youtube.videos :as yt.video]))
+            [com.wsscode.pathom.connect.youtube.helpers :as yth]
+            [com.wsscode.pathom.connect.youtube.videos :as yt.video]))
 
 (def search-video-output
   [:youtube.video/id
