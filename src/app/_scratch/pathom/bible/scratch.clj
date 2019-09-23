@@ -90,7 +90,7 @@
       (merge (namespaced-keys (get m key) ns))))
 
 (comment
-  (pull-namespaced (first [{:a 1 :b 2 :c 3}]) :an-ns "an-ns"))
+  (pull-namespaced bible-pt-br  :bible/data "bible.data"))
 
 (defn update-if [m k f & args]
   (if (contains? m k)
@@ -133,9 +133,42 @@
       (pull-namespaced :bible.data/language "bible.data.language")))
 
 
+
+(comment
+
+  (defn adapt-country [all-countries]
+    (mapv #(namespaced-keys  %  "bible.data.country")
+          all-countries))
+
+  (-> bible-pt-br
+      adapt-bible
+      adapt-language
+      :bible.data/countries
+      (adapt-country)
+      (hash-map :bible.data/countries))
+
+
+
+
+  (defn adapt-countries [a-bible]
+    (-> a-bible
+        (pull-namespaced :bible.data/countries "bible.data.countries")
+        :bible.data/countries
+        (adapt-country)
+        (hash-map :bible.data/countries)))
+
+
+  (-> bible-pt-br
+   adapt-bible
+   adapt-language
+   :bible.data/countries
+   (adapt-country)
+   #_(hash-map :test)
+   (pull-namespaced :bible.data.countries/id "bible.data.countries")))
+
+
+
 ;; NOTE this function is actually a resolver
-
-
 (defn bible-by-id [env {:bible.data/keys [id]}]
   (->> {::endpoint id}
        (merge env)
@@ -172,19 +205,19 @@
                             :bible.data/type
                             :bible.data/updatedAt]})))
 
-(def parser (p/parser {}))
+(def parser (p/parser {::p/plugins [(p/env-plugin  {::p/reader [p/map-reader
+                                                                pc/all-readers]
+                                                    ::pc/indexes indexes
+                                                    ::token token})]}))
 
-(parser {::p/reader [p/map-reader
-                     pc/all-readers]
-         ::pc/indexes indexes
-         ::token token}
+(parser {}
 
         [{[:bible.data/id  "90799bb5b996fddc-01"]
 
-          [#_:bible.data/updatedAt
-           #_:bible.data/language
+          [:bible.data/updatedAt
            :bible.data.language/script
-
+           ;; TODO figure our how to get only the name of the country
+           {:bible.data/countries [:name]}
            :bible.data/countries]}])
 
 
@@ -196,31 +229,31 @@
 ;;;;;;;;;;;;
 
 
-(def indexes (atom {}))
+;; (def indexes (atom {}))
 
-(pc/defresolver language-resolver [_ {:host/keys [domain]}]
-  {::pc/input  #{:bible/data}
-   ::pc/output [:bible.data/languages]}
-  (get host-by-domain domain))
+;; (pc/defresolver language-resolver [_ {:host/keys [domain]}]
+;;   {::pc/input  #{:bible/data}
+;;    ::pc/output [:bible.data/languages]}
+;;   (get host-by-domain domain))
 
-(def app-registry
-  [language-resolver])
+;; (def app-registry
+;;   [language-resolver])
 
-(def parser
-  (p/parallel-parser
-   {::p/env     {::p/reader               [p/map-reader
-                                           pc/parallel-reader
-                                           pc/open-ident-reader
-                                           p/env-placeholder-reader]
-                 ::p/placeholder-prefixes #{">"}}
-    ::p/plugins [(pc/connect-plugin {::pc/register app-registry
-                                     ::pc/indexes  indexes})
-                 p/error-handler-plugin
-                 p/trace-plugin]}))
+;; (def parser
+;;   (p/parallel-parser
+;;    {::p/env     {::p/reader               [p/map-reader
+;;                                            pc/parallel-reader
+;;                                            pc/open-ident-reader
+;;                                            p/env-placeholder-reader]
+;;                  ::p/placeholder-prefixes #{">"}}
+;;     ::p/plugins [(pc/connect-plugin {::pc/register app-registry
+;;                                      ::pc/indexes  indexes})
+;;                  p/error-handler-plugin
+;;                  p/trace-plugin]}))
 
-#?(:clj
-   (defn entity-parse [entity query]
-     (<!! (parser {::p/entity (atom entity)} query))))
+;; #?(:clj
+;;    (defn entity-parse [entity query]
+;;      (<!! (parser {::p/entity (atom entity)} query))))
 
 
 
