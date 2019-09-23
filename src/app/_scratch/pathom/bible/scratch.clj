@@ -21,7 +21,6 @@
 
 (def token secrets/token-bible)
 
-
 (defn api [{::keys [endpoint method token]
             :or    {method :get}}]
   (-> (http/request {:method  method
@@ -29,7 +28,6 @@
                      :as      :json
                      :url     (str "https://api.scripture.api.bible/v1/bibles/" endpoint)})
       :body))
-
 
 (comment
   (api {::token token ::endpoint "90799bb5b996fddc-01"}))
@@ -115,7 +113,6 @@
       ;; TODO
       #_(pull-namespaced :bible.data/countries "bible.data.countries")))
 
-
 (pc/data->shape bible-pt-br)
 
 
@@ -127,31 +124,70 @@
 
 
 (defn adapt-bible [a-bible]
-  (namespaced-keys a-bible "bible.data"))
+  (-> a-bible
+      (namespaced-keys "bible")
+      (pull-namespaced :bible/data "bible.data")))
 
+(defn adapt-language [a-bible]
+  (-> a-bible
+      (pull-namespaced :bible.data/language "bible.data.language")))
+
+
+;; NOTE this function is actually a resolver
 
 
 (defn bible-by-id [env {:bible.data/keys [id]}]
   (->> {::endpoint id}
        (merge env)
        (api)
-       (adapt-bible)))
+       (adapt-bible)
+       (adapt-language)))
 
-(bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"})
-
+(pc/data->shape
+ (bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"}))
 
 (def indexes
   (-> {}
-      (pc/add `bible-by-id)))
+      (pc/add `bible-by-id
+              {::pc/input #{:bible.data/id}
 
-
+               ::pc/output [:bible.data.language/id
+                            :bible.data.language/name
+                            :bible.data.language/nameLocal
+                            :bible.data.language/script
+                            :bible.data.language/scriptDirection
+                            :bible.data/abbreviation
+                            :bible.data/abbreviationLocal
+                            :bible.data/audioBibles
+                            :bible.data/copyright
+                            #:bible.data{:countries [:id :name :nameLocal]}
+                            :bible.data/dblId
+                            :bible.data/description
+                            :bible.data/descriptionLocal
+                            :bible.data/id
+                            :bible.data/info
+                            :bible.data/name
+                            :bible.data/nameLocal
+                            :bible.data/relatedDbl
+                            :bible.data/type
+                            :bible.data/updatedAt]})))
 
 (def parser (p/parser {}))
 
-
-
 (parser {::p/reader [p/map-reader
-                     pc/all-readers]})
+                     pc/all-readers]
+         ::pc/indexes indexes
+         ::token token}
+
+        [{[:bible.data/id  "90799bb5b996fddc-01"]
+
+          [#_:bible.data/updatedAt
+           #_:bible.data/language
+           :bible.data.language/script
+
+           :bible.data/countries]}])
+
+
 
 
 
