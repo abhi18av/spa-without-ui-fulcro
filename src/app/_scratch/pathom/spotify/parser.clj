@@ -127,9 +127,6 @@
   (artist-top-tracks {::token token}
                      {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
 
-  (artist-top-tracks {::token token}
-                     {:spotify.artist/id "0oSGxfWSnnOXhD2fKuz2Gy"})
-
   )
 
 
@@ -259,8 +256,4 @@
           [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
             [:spotify.artist/name :spotify.artist/genres]}])
 
-  ; example artist id: "3WrFJ7ztbogyGnTHbHJFl2"
-
-  (p.connect/data->shape (artist-by-id {::token token}
-                                       {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"}))
   )
