@@ -125,8 +125,8 @@
 
 
 (comment
-  (pull-namespaced {:a 1 :b 2} :an-ns "an-ns"))
-
+  (pull-namespaced {:a 1 :b 2} :an-ns "an-ns")
+  (pull-namespaced (first [{:a 1 :b 2 :c 3}]) :an-ns "an-ns"))
 
 
 
@@ -142,39 +142,98 @@
 
 ;;;;;;;;;;;
 
-
-(defn adapt-toplevel [core]
-  (-> core
-      (namespaced-keys "bible.core")))
-
 (comment
   (-> bible-pt-br
-      adapt-toplevel
-      first))
+      (namespaced-keys "bible")
+      (pull-namespaced :bible/data "bible.data")
+      #_(pull-namespaced :bible.data/countries "bible.data.countries")
+      (pull-namespaced :bible.data/language "bible.data.language")))
 
 
 (defn adapt-data [payload]
   (-> payload
       (namespaced-keys "bible")
-      (pull-namespaced :bible.data "bible.data")))
+      (pull-namespaced :bible/data "bible.data")))
 
 (comment
   (-> bible-pt-br
-      adapt-data
-      #_:bible/data))
+      adapt-data))
+
+;; TODO
+;; (defn adapt-countries [payload]
+;;   (-> payload
+;;       (pull-namespaced :bible.data/countries "bible.data.countries")))
+
+;; (comment
+;;   (-> bible-pt-br
+;;       adapt-data
+;;       :bible.data/countries
+;;       #_(pull-namespaced :bible.data/countries "bible.data.countries")))
 
 (defn adapt-language [a-bible]
   (-> a-bible
-      adapt-data
-      :bible/data
-      (namespaced-keys "laanguage")
-      (pull-namespaced :bible.data/language "bible.data/language")))
+      (pull-namespaced :bible.data/language "bible.data.language")))
 
 (comment
   (-> bible-pt-br
       adapt-data
-      #_:bible/data
-      (namespaced-keys "bible")
-      #_:bible.data/language
-      (pull-namespaced :bible.data/language "bible.data.language")))
+      adapt-language))
+
+
+;;;;;;;;;;;
+
+
+
+(defonce indexes (atom {}))
+
+
+
+
+
+(pc/defresolver latest-launch
+  [env _]
+  {::pc/output [{:spacex/latest-launch launch-out}]}
+  (go-catch
+   (->> (p.http/request env "https://api.spacexdata.com/v3/launches/latest"
+                        {::p.http/accept ::p.http/json}) <?maybe
+        ::p.http/body
+        adapt-launch
+        (hash-map :spacex/latest-launch))))
+
+(def resolvers
+  [all-launches past-launches upcoming-launches one-launch latest-launch])
+
+(defn spacex-plugin []
+  {::pc/register resolvers})
+
+
+
+
+(def parser
+  (p/parallel-parser
+   {::p/env     {::p/reader               [p/map-reader
+                                           pc/parallel-reader
+                                           pc/open-ident-reader
+                                           p/env-placeholder-reader]
+                 ::p/placeholder-prefixes #{">"}
+                 ::p.http/driver          http-driver}
+    ::p/plugins [(pc/connect-plugin {::pc/register app-registry
+                                     ::pc/indexes  indexes})
+                 (spacex-plugin)
+                 p/error-handler-plugin
+                 p/trace-plugin]}))
+
+
+
+#?(:clj
+   (defn entity-parse [entity query]
+     (<!! (parser {::p/entity (atom entity)} query))))
+
+
+
+
+
+
+
+
 
