@@ -83,12 +83,31 @@
 
 
 (comment
-  (artist-by-id {::token token}
-                {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
 
-  ;; TODO doesn't work
-  (p.connect/data->shape (artist-by-id {::token token}
-                                       {:spotify.artist/id "0oSGxfWSnnOXhD2fKuz2Gy"}))
+  (def indexes
+    (-> {}
+        (p.connect/add `artist-by-id
+                       {::p.connect/input  #{:spotify.artist/id}
+                        ::p.connect/output (p.connect/data->shape (artist-by-id {::token token}
+                                                                                {:spotify.artist/id "0oSGxfWSnnOXhD2fKuz2Gy"}))})))
+
+
+  (let [parser (p/parser {})]
+    (parser {::p/reader          [p/map-reader
+                                  p.connect/all-readers]
+             ::p.connect/indexes indexes
+             ::token             token}
+            [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
+              [:spotify.artist/name]}]))
+
+
+  (let [parser (p/parser {})]
+    (parser {::p/reader          [p/map-reader
+                                  p.connect/all-readers]
+             ::p.connect/indexes indexes
+             ::token             token}
+            [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
+              [:spotify.artist/name :spotify.artist/genres]}]))
 
   )
 

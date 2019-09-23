@@ -116,7 +116,7 @@
       (merge (get m key))))
 
 (comment
-  (pull-key {:a 1 :b 2} :an))
+  (pull-key bible-pt-br :data/description))
 
 
 
@@ -125,7 +125,6 @@
   [m key ns]
   (-> (dissoc m key)
       (merge (namespaced-keys (get m key) ns))))
-
 
 
 (comment
