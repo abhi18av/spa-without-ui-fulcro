@@ -111,11 +111,50 @@
   (-> bible-pt-br
       (namespaced-keys "bible")
       (pull-namespaced :bible/data "bible.data")
+      (pull-namespaced :bible.data/language "bible.data.language")
       ;; TODO
-      #_(pull-namespaced :bible.data/countries "bible.data.countries")
-      #_(pull-namespaced :bible.data/language "bible.data.language")))
+      #_(pull-namespaced :bible.data/countries "bible.data.countries")))
+
 
 (pc/data->shape bible-pt-br)
+
+
+
+
+
+
+;;;;;;;;;;;;
+
+
+(defn adapt-bible [a-bible]
+  (namespaced-keys a-bible "bible.data"))
+
+
+
+(defn bible-by-id [env {:bible.data/keys [id]}]
+  (->> {::endpoint id}
+       (merge env)
+       (api)
+       (adapt-bible)))
+
+(bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"})
+
+
+(def indexes
+  (-> {}
+      (pc/add `bible-by-id)))
+
+
+
+(def parser (p/parser {}))
+
+
+
+(parser {::p/reader [p/map-reader
+                     pc/all-readers]})
+
+
+
 
 
 ;;;;;;;;;;;;
