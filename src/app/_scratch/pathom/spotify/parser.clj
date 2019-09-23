@@ -36,14 +36,20 @@
 (defn adapt-album [album]
   (namespace-keys album "spotify.album"))
 
+
+
 (defn adapt-artist [artist]
   (namespace-keys artist "spotify.artist"))
 
-(defn adapt-track [track]
-  (-> track
-      (update :album adapt-album)
-      (update :artists #(mapv adapt-artist %))
-      (namespace-keys "spotify.track")))
+(comment
+  (->> {::endpoint (str "artists/" "3WrFJ7ztbogyGnTHbHJFl2")}
+       (merge {::token token})
+       (api)
+       (adapt-artist))
+
+  )
+
+
 
 (defn artist-by-id [env {:spotify.artist/keys [id]}]
   (->> {::endpoint (str "artists/" id)}
@@ -113,6 +119,25 @@
 
 
 
+(defn adapt-track [track]
+  (-> track
+      (update :album adapt-album)
+      (update :artists #(mapv adapt-artist %))
+      (namespace-keys "spotify.track")))
+
+
+(comment
+  (->> {::endpoint (str "artists/" "3WrFJ7ztbogyGnTHbHJFl2" "/top-tracks?country=BR")}
+       (merge {::token token})
+       (api)
+       :tracks
+       (mapv adapt-track)
+       (hash-map :spotify.artist/top-tracks))
+
+  )
+
+
+
 (defn artist-top-tracks [env {:spotify.artist/keys [id]}]
   (->> {::endpoint (str "artists/" id "/top-tracks?country=BR")}
        (merge env)
@@ -126,6 +151,14 @@
 (comment
   (artist-top-tracks {::token token}
                      {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
+
+
+  (->> {::endpoint (str "artists/" "3WrFJ7ztbogyGnTHbHJFl2" "/top-tracks?country=BR")}
+       (merge {::token token})
+       (api)
+       :tracks
+       (mapv adapt-track)
+       (hash-map :spotify.artist/top-tracks))
 
   )
 
@@ -201,6 +234,19 @@
       (merge env)
       (api)
       (adapt-track)))
+
+
+
+(comment
+  (->> {::endpoint (str "artists/" id "/top-tracks?country=BR")}
+       (merge env)
+       (api)
+       :tracks
+       (mapv adapt-track)
+       (hash-map :spotify.artist/top-tracks))
+  )
+
+
 
 (add-resolver! `track-by-id
                {::p.connect/input  #{:spotify.track/id}

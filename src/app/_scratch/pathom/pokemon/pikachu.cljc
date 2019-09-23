@@ -1,7 +1,7 @@
 (ns ^{:author "Abhinav Sharma (@abhi18av)"
       :doc    "Wraps the api for https://pokeapi.co/docs/v2.html/#pokemon "}
 
-    app.-scratch.pathom.pokemon.pokemon
+  app.-scratch.pathom.pokemon.pikachu
 
   (:require [app.-scratch.pathom.pokemon.utils :as utils]
             [app.-scratch.pathom.pokemon.pokemon]
@@ -15,28 +15,10 @@
             [com.wsscode.pathom.connect.graphql :as pcg]))
 
 
+;;;;;;;;;;;;;;;;;;;;
 
 
 
-(defn api [{::keys [endpoint method]
-            :or    {method :get}}]
-  (-> (http/request {:method  method
-                     :as      :json
-                     :url     (str "https://pokeapi.co/api/v2/" endpoint)})
-      :body))
+utils/pikachu
 
-
-
-(comment
-  (api {::endpoint "pokemon/pikachu"}))
-
-
-
-(->
-   {::endpoint "pokemon/pikachu"}
-   api
-   (utils/namespaced-keys "pokemon"))
-
-
-
-
+()
