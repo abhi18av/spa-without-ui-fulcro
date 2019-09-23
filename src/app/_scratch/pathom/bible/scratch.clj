@@ -26,14 +26,16 @@
   (-> (http/request {:method  method
                      :headers {:api-key token}
                      :as      :json
-                     :url     (str "https://api.scripture.api.bible/v1/bibles/" endpoint)})
+                     :url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)})
       :body))
 
 (comment
-  (api {::token token ::endpoint "90799bb5b996fddc-01"}))
+
+
+  (api {::token token ::endpoint "/90799bb5b996fddc-01"}))
 
 (def bible-pt-br
-  (api {::token token ::endpoint "90799bb5b996fddc-01"}))
+  (api {::token token ::endpoint "/90799bb5b996fddc-01"}))
 
 
 ;;;;;;;;;;;
@@ -105,24 +107,6 @@
 ;;;;;;;;;;;
 
 
-(comment
-  (-> bible-pt-br
-      (namespaced-keys "bible")
-      (pull-namespaced :bible/data "bible.data")
-      (pull-namespaced :bible.data/language "bible.data.language")
-      ;; TODO
-      #_(pull-namespaced :bible.data/countries "bible.data.countries")))
-
-(pc/data->shape bible-pt-br)
-
-
-
-
-
-
-;;;;;;;;;;;;
-
-
 (defn adapt-bible [a-bible]
   (-> a-bible
       (namespaced-keys "bible")
@@ -132,49 +116,19 @@
   (-> a-bible
       (pull-namespaced :bible.data/language "bible.data.language")))
 
+;; TODO
+(defn adapt-country [a-country]
+  (-> a-country
+      (namespaced-keys "bible.data.countries")))
 
 
-(comment
-
-  (defn adapt-country [all-countries]
-    (mapv #(namespaced-keys  %  "bible.data.country")
-          all-countries))
-
-  (-> bible-pt-br
-      adapt-bible
-      adapt-language
-      :bible.data/countries
-      (adapt-country)
-      (hash-map :bible.data/countries))
-
-
-
-
-  (defn adapt-countries [a-bible]
-    (-> a-bible
-        (pull-namespaced :bible.data/countries "bible.data.countries")
-        :bible.data/countries
-        (adapt-country)
-        (hash-map :bible.data/countries)))
-
-
-  (-> bible-pt-br
-   adapt-bible
-   adapt-language
-   :bible.data/countries
-   (adapt-country)
-   #_(hash-map :test)
-   (pull-namespaced :bible.data.countries/id "bible.data.countries")))
-
-
-
-;; NOTE this function is actually a resolver
 (defn bible-by-id [env {:bible.data/keys [id]}]
   (->> {::endpoint id}
        (merge env)
        (api)
        (adapt-bible)
-       (adapt-language)))
+       (adapt-language)
+       #_(adapt-country)))
 
 (pc/data->shape
  (bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"}))
@@ -215,53 +169,69 @@
         [{[:bible.data/id  "90799bb5b996fddc-01"]
 
           [:bible.data/updatedAt
-           :bible.data.language/script
-           ;; TODO figure our how to get only the name of the country
-           {:bible.data/countries [:name]}
-           :bible.data/countries]}])
+           :bible.data.language/script]}])
 
 
 
 
 
-
-
-;;;;;;;;;;;;
-
-
-;; (def indexes (atom {}))
-
-;; (pc/defresolver language-resolver [_ {:host/keys [domain]}]
-;;   {::pc/input  #{:bible/data}
-;;    ::pc/output [:bible.data/languages]}
-;;   (get host-by-domain domain))
-
-;; (def app-registry
-;;   [language-resolver])
-
-;; (def parser
-;;   (p/parallel-parser
-;;    {::p/env     {::p/reader               [p/map-reader
-;;                                            pc/parallel-reader
-;;                                            pc/open-ident-reader
-;;                                            p/env-placeholder-reader]
-;;                  ::p/placeholder-prefixes #{">"}}
-;;     ::p/plugins [(pc/connect-plugin {::pc/register app-registry
-;;                                      ::pc/indexes  indexes})
-;;                  p/error-handler-plugin
-;;                  p/trace-plugin]}))
-
-;; #?(:clj
-;;    (defn entity-parse [entity query]
-;;      (<!! (parser {::p/entity (atom entity)} query))))
+;;;;;;;;;;;;;;;;;;;;;
+;; BOOKS
+;;;;;;;;;;;;;;;;;;;;;
 
 
 
 
 
+(comment
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
+
+  '())
+
+
+(def bible-pt-br-books
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"}))
+
+
+(comment
+  (pull-namespaced bible-pt-br-books  :bible/books "bible.data")
+  #_(namespaced-keys bible-pt-br-books "books")
+  (pc/data->shape bible-pt-br-books))
 
 
 
 
+(-> bible-pt-br-books
+    (namespaced-keys "bible")
+    (pull-namespaced :bible "bible.data"))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; CHAPTERS
+;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+(comment
+
+
+  (api {::token token ::endpoint ""})
+
+  (api {::token token ::endpoint "/90799bb5b996fddc-01"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/chapters"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/passages/LUK.22"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/verses"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/verses/LUK.22.11"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/sections"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/sections"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/sections/LUK.S131"})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/search?query=hoje"})
+
+
+  '())
 
 
