@@ -1,6 +1,7 @@
-(ns app.-scratch.pathom.bible.scratch
+(ns ^{:author "Abhinav Sharma (@abhi18av)"
+      :doc    "Wraps the api for https://scripture.api.bible/livedocs "}
 
-  "Wraps the api for https://scripture.api.bible/livedocs "
+  app.-scratch.pathom.bible.scratch
 
   (:require [app.secrets :as secrets]
             [clojure.core.async :refer [go timeout <! <!!]]
@@ -14,10 +15,34 @@
             [com.wsscode.pathom.connect.graphql :as pcg]
     #_[com.wsscode.pathom.diplomat.http :as p.http]))
 
+
+
 ;;;;;;;;;;;
 
 
-;region entity helpers
+(def token secrets/token-bible)
+
+(def bible-pt-br
+  (-> (http/request {:method  :get
+                     :headers {:api-key token}
+                     :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
+      :body
+      json/read-str))
+
+
+(comment
+
+  (-> (http/request {:method  :get
+                     :headers {:api-key token}
+                     :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
+      :body
+      json/read-str))
+
+
+
+;;;;;;;;;;;
+
+
 (defn adapt-key [k]
   (str/replace k #"_" "-"))
 
@@ -79,39 +104,28 @@
 
 
 
+
 (defn pull-key
   "Pull some key"
-  [x key]
-  (-> (dissoc x key)
-      (merge (get x key))))
+  [m key]
+  (-> (dissoc m key)
+      (merge (get m key))))
 
 (comment
-  ;; TODO
-  (let [x {:a 1 :b 2}
-        key "a"]
-    (-> (dissoc x key)
-        (merge (get x key))))
-
-  (dissoc {:a 1 :b 2} :a)
-  (get {:a 1} :a)
-  (pull-key {:a 1 :b 2} :a))
-
-(pull-key {:a 1 :b 2} :a)
+  (pull-key {:a 1 :b 2} :an))
 
 
 
 (defn pull-namespaced
   "Pull some key, updating the namespaces of it"
-  [x key ns]
-  (-> (dissoc x key)
-      (merge (namespaced-keys (get x key) ns))))
+  [m key ns]
+  (-> (dissoc m key)
+      (merge (namespaced-keys (get m key) ns))))
 
 
 
-;; TODO
-(comment)
-
-(pull-namespaced {:a 1 :b 2} :a "an-ns")
+(comment
+  (pull-namespaced {:a 1 :b 2} :an-ns "an-ns"))
 
 
 
@@ -126,34 +140,6 @@
 
 
 
-
-;;;;;;;;;;;
-
-
-(def token secrets/token-bible)
-
-(def bible-pt-br
-  (-> (http/request {:method  :get
-                     :headers {:api-key token}
-                     :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
-      :body
-      json/read-str))
-
-
-(comment
-
-  (-> (http/request {:method  :get
-                     :headers {:api-key token}
-                     :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
-      :body
-      json/read-str))
-
-
-
-
-
-
-
 ;;;;;;;;;;;
 
 
@@ -163,31 +149,32 @@
 
 (comment
   (-> bible-pt-br
-      adapt-toplevel))
+      adapt-toplevel
+      first))
 
 
 (defn adapt-data [payload]
   (-> payload
-      (namespaced-keys "bible.data")
-      (pull-namespaced :bible.data "data")))
+      (namespaced-keys "bible")
+      (pull-namespaced :bible.data "bible.data")))
 
 (comment
   (-> bible-pt-br
-      adapt-data))
+      adapt-data
+      #_:bible/data))
 
-(defn adapt-rocket [rocket]
-  (-> rocket
-      (namespaced-keys "spacex.rocket")
-      (pull-namespaced :spacex.rocket/first-stage "spacex.launch.first-stage")
-      (update-if :spacex.launch.first-stage/cores #(mapv adapt-core %))
-      (pull-namespaced :spacex.rocket/second-stage "spacex.launch.second-stage")
-      (update-if :spacex.launch.second-stage/payloads #(mapv adapt-payload %))
-      (pull-namespaced :spacex.rocket/fairings "spacex.launch.fairings")))
+(defn adapt-language [a-bible]
+  (-> a-bible
+      adapt-data
+      :bible/data
+      (namespaced-keys "laanguage")
+      (pull-namespaced :bible.data/language "bible.data/language")))
 
 (comment
-  (-> (http/request {:method :get
-                     :url    "https://api.spacexdata.com/v3/rockets/falcon9"})
-      :body
-      println
-      json/read-str
-      adapt-rocket))
+  (-> bible-pt-br
+      adapt-data
+      #_:bible/data
+      (namespaced-keys "bible")
+      #_:bible.data/language
+      (pull-namespaced :bible.data/language "bible.data.language")))
+

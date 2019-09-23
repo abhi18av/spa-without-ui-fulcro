@@ -11,7 +11,7 @@
             [com.wsscode.pathom.connect.graphql :as pcg]
             #_[com.wsscode.pathom.diplomat.http :as p.http]))
 
-;region entity helpers
+
 (defn adapt-key [k]
   (str/replace k #"_" "-"))
 
@@ -53,7 +53,7 @@
   [x key ns]
   (-> (dissoc x key)
       (merge (namespaced-keys (get x key) ns))))
-;endregion
+
 
 (defn update-if [m k f & args]
   (if (contains? m k)
@@ -302,6 +302,9 @@
 
 
 (comment
+
+  (entity-parse {[:spacex.launch/flight-number 67]})
+
 
  (entity-parse {}
   [{:spacex/all-launches

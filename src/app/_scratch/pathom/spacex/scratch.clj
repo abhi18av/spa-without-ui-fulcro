@@ -117,6 +117,24 @@
   (-> (http/request {:method  :get
                      :url     "https://api.spacexdata.com/v3/rockets/falcon9"})
       :body
-      println
+      #_println
       json/read-str
       adapt-rocket))
+
+
+
+(defn adapt-launch-pad [launch-pad]
+  (-> launch-pad
+      (namespaced-keys "spacex.launch-pad")))
+
+(defn adapt-launch [launch]
+  (-> launch
+      (update :launch_site adapt-launch-pad)
+      (update :rocket adapt-rocket)
+      (namespaced-keys "spacex.launch")
+      (pull-key :spacex.launch/launch-site)
+      (pull-key :spacex.launch/rocket)
+      (pull-namespaced :spacex.launch/links "spacex.launch.links")
+      (pull-namespaced :spacex.launch/telemetry "spacex.launch.telemetry")))
+
+
