@@ -56,6 +56,13 @@
   (artist-by-id {::token token}
                 {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
 
+
+
+
+  (p.connect/data->shape
+    (artist-by-id {::token token}
+                  {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"}))
+
   )
 
 

@@ -5,7 +5,6 @@
 
   (:require [app.secrets :as secrets]
             [clojure.core.async :refer [go timeout <! <!!]]
-            [clojure.data.json :as json]
             [clj-http.client :as http]
             [clojure.string :as str]
             [com.wsscode.common.async-clj :refer [go-catch <? let-chan chan? <?maybe <!maybe go-promise]]
@@ -25,18 +24,20 @@
 (def bible-pt-br
   (-> (http/request {:method  :get
                      :headers {:api-key token}
+                     :as :json
                      :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
-      :body
-      json/read-str))
+      :body))
+
 
 
 (comment
 
   (-> (http/request {:method  :get
                      :headers {:api-key token}
+                     :as :json
                      :url     "https://api.scripture.api.bible/v1/bibles/90799bb5b996fddc-01"})
-      :body
-      json/read-str))
+      :body))
+
 
 
 
@@ -100,7 +101,10 @@
     e))
 
 (comment
-  (namespaced-keys {:a 1 :b 2} "an-ns"))
+  (namespaced-keys bible-pt-br "bible")
+
+  (pc/data->shape bible-pt-br))
+
 
 
 
