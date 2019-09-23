@@ -11,20 +11,11 @@
 (def indexes (atom {}))
 
 (def email-db
-  {"elaina.lind@gmail.com"
-   {:first-name "Elaina" :last-name "Lind"}
-   "shanna.harber@yahoo.com"
-
-   {:first-name "Shanna" :last-name "Harber"}
-   "sydni.considine@gmail.com"
-
-   {:first-name "Sydni" :last-name "Considine"}
-
-   "margaret.brakus@gmail.com"
-   {:first-name "Margaret" :last-name "Brakus"}
-
-   "delaney.wehner@hotmail.com"
-   {:first-name "Delaney" :last-name "Wehner"}})
+  {"elaina.lind@gmail.com" {:first-name "Elaina" :last-name "Lind"}
+   "shanna.harber@yahoo.com" {:first-name "Shanna" :last-name "Harber"}
+   "sydni.considine@gmail.com" {:first-name "Sydni" :last-name "Considine"}
+   "margaret.brakus@gmail.com" {:first-name "Margaret" :last-name "Brakus"}
+   "delaney.wehner@hotmail.com" {:first-name "Delaney" :last-name "Wehner"}})
 
 
 
@@ -76,8 +67,12 @@
 
 
 (def app-registry
-  [full-name-resolver email->name all-emails the-answer
-   email->domain host])
+  [full-name-resolver
+   email->name
+   all-emails
+   the-answer
+   email->domain
+   host])
 
 (def parser
   (p/parallel-parser

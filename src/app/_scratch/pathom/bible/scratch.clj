@@ -180,34 +180,27 @@
       adapt-language))
 
 
+
+(pc/data->shape bible-pt-br)
+
+
 ;;;;;;;;;;;
 
 
-
-(defonce indexes (atom {}))
-
+(def indexes (atom {}))
 
 
 
-
-(pc/defresolver latest-launch
-  [env _]
-  {::pc/output [{:spacex/latest-launch launch-out}]}
-  (go-catch
-   (->> (p.http/request env "https://api.spacexdata.com/v3/launches/latest"
-                        {::p.http/accept ::p.http/json}) <?maybe
-        ::p.http/body
-        adapt-launch
-        (hash-map :spacex/latest-launch))))
-
-(def resolvers
-  [all-launches past-launches upcoming-launches one-launch latest-launch])
-
-(defn spacex-plugin []
-  {::pc/register resolvers})
+(pc/defresolver language-resolver [_ {:host/keys [domain]}]
+  {::pc/input  #{:bible/data}
+   ::pc/output [:bible.data/languages]}
+  (get host-by-domain domain))
 
 
 
+
+(def app-registry
+  [language-resolver])
 
 (def parser
   (p/parallel-parser
@@ -215,19 +208,18 @@
                                            pc/parallel-reader
                                            pc/open-ident-reader
                                            p/env-placeholder-reader]
-                 ::p/placeholder-prefixes #{">"}
-                 ::p.http/driver          http-driver}
+                 ::p/placeholder-prefixes #{">"}}
     ::p/plugins [(pc/connect-plugin {::pc/register app-registry
                                      ::pc/indexes  indexes})
-                 (spacex-plugin)
                  p/error-handler-plugin
                  p/trace-plugin]}))
-
 
 
 #?(:clj
    (defn entity-parse [entity query]
      (<!! (parser {::p/entity (atom entity)} query))))
+
+
 
 
 
