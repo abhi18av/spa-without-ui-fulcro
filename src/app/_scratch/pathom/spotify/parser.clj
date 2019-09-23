@@ -1,6 +1,5 @@
 (ns spotify
   (:require [app.secrets :as secrets]
-            [clojure.data.json :as json]
             [clj-http.client :as http]
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as p.connect]
@@ -22,8 +21,7 @@
                      :headers {"Authorization" (str "Bearer " token)}
                      :as      :json
                      :url     (str "https://api.spotify.com/v1/" endpoint)})
-      :body
-      json/read-str))
+      :body))
 
 
 (comment
@@ -52,6 +50,15 @@
        (merge env)
        (api)
        (adapt-artist)))
+
+(comment
+
+  (artist-by-id {::token token}
+                {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
+
+  )
+
+
 
 
 (add-resolver! `artist-by-id
@@ -96,8 +103,6 @@
 
   (artist-top-tracks {::token token}
                      {:spotify.artist/id "0oSGxfWSnnOXhD2fKuz2Gy"})
-
-
 
   )
 
@@ -148,25 +153,25 @@
       (namespace-keys "spotify.track")))
 
 (add-resolver! `track-audio-features
-  {::p.connect/input #{:spotify.track/id}
-   ::p.connect/output [:spotify.track/instrumentalness
-                       :spotify.track/track_href
-                       :spotify.track/acousticness
-                       :spotify.track/energy
-                       :spotify.track/time_signature
-                       :spotify.track/analysis_url
-                       :spotify.track/valence
-                       :spotify.track/duration_ms
-                       :spotify.track/uri
-                       :spotify.track/type
-                       :spotify.track/key
-                       :spotify.track/tempo
-                       :spotify.track/mode
-                       :spotify.track/liveness
-                       :spotify.track/loudness
-                       :spotify.track/speechiness
-                       :spotify.track/danceability
-                       :spotify.track/id]})
+               {::p.connect/input  #{:spotify.track/id}
+                ::p.connect/output [:spotify.track/instrumentalness
+                                    :spotify.track/track_href
+                                    :spotify.track/acousticness
+                                    :spotify.track/energy
+                                    :spotify.track/time_signature
+                                    :spotify.track/analysis_url
+                                    :spotify.track/valence
+                                    :spotify.track/duration_ms
+                                    :spotify.track/uri
+                                    :spotify.track/type
+                                    :spotify.track/key
+                                    :spotify.track/tempo
+                                    :spotify.track/mode
+                                    :spotify.track/liveness
+                                    :spotify.track/loudness
+                                    :spotify.track/speechiness
+                                    :spotify.track/danceability
+                                    :spotify.track/id]})
 
 (defn track-by-id [env {:spotify.track/keys [id]}]
   (-> {::endpoint (str "tracks/" id)}
@@ -175,37 +180,37 @@
       (adapt-track)))
 
 (add-resolver! `track-by-id
-  {::p.connect/input #{:spotify.track/id}
-   ::p.connect/output [:spotify.track/href
-                       :spotify.track/available_markets
-                       :spotify.track/popularity
-                       :spotify.track/disc_number
-                       #:spotify.track{:album [:spotify.album/album_type
-                                               #:spotify.album{:external_urls [:spotify]}
-                                               #:spotify.album{:images [:height :url :width]}
-                                               :spotify.album/available_markets
-                                               #:spotify.album{:artists [{:external_urls [:spotify]} :href :id :name :type :uri]}
-                                               :spotify.album/name
-                                               :spotify.album/uri
-                                               :spotify.album/type
-                                               :spotify.album/href
-                                               :spotify.album/id]}
-                       :spotify.track/explicit
-                       :spotify.track/name
-                       :spotify.track/duration_ms
-                       #:spotify.track{:artists [#:spotify.artist{:external_urls [:spotify]}
-                                                 :spotify.artist/href
-                                                 :spotify.artist/id
-                                                 :spotify.artist/name
-                                                 :spotify.artist/type
-                                                 :spotify.artist/uri]}
-                       :spotify.track/uri
-                       :spotify.track/type
-                       #:spotify.track{:external_ids [:isrc]}
-                       #:spotify.track{:external_urls [:spotify]}
-                       :spotify.track/preview_url
-                       :spotify.track/id
-                       :spotify.track/track_number]})
+               {::p.connect/input  #{:spotify.track/id}
+                ::p.connect/output [:spotify.track/href
+                                    :spotify.track/available_markets
+                                    :spotify.track/popularity
+                                    :spotify.track/disc_number
+                                    #:spotify.track{:album [:spotify.album/album_type
+                                                            #:spotify.album{:external_urls [:spotify]}
+                                                            #:spotify.album{:images [:height :url :width]}
+                                                            :spotify.album/available_markets
+                                                            #:spotify.album{:artists [{:external_urls [:spotify]} :href :id :name :type :uri]}
+                                                            :spotify.album/name
+                                                            :spotify.album/uri
+                                                            :spotify.album/type
+                                                            :spotify.album/href
+                                                            :spotify.album/id]}
+                                    :spotify.track/explicit
+                                    :spotify.track/name
+                                    :spotify.track/duration_ms
+                                    #:spotify.track{:artists [#:spotify.artist{:external_urls [:spotify]}
+                                                              :spotify.artist/href
+                                                              :spotify.artist/id
+                                                              :spotify.artist/name
+                                                              :spotify.artist/type
+                                                              :spotify.artist/uri]}
+                                    :spotify.track/uri
+                                    :spotify.track/type
+                                    #:spotify.track{:external_ids [:isrc]}
+                                    #:spotify.track{:external_urls [:spotify]}
+                                    :spotify.track/preview_url
+                                    :spotify.track/id
+                                    :spotify.track/track_number]})
 
 (def parser
   (p/parser {::p/plugins [(p/env-plugin {::p/reader          [p/map-reader
@@ -221,12 +226,12 @@
   (def CONTEXT {:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"})
 
   (parser {}
-    [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
-      [:spotify.artist/top-tracks]}])
+          [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
+            [:spotify.artist/top-tracks]}])
 
   (parser {}
-    [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
-      [:spotify.artist/name :spotify.artist/genres]}])
+          [{[:spotify.artist/id "3WrFJ7ztbogyGnTHbHJFl2"]
+            [:spotify.artist/name :spotify.artist/genres]}])
 
   ; example artist id: "3WrFJ7ztbogyGnTHbHJFl2"
 
