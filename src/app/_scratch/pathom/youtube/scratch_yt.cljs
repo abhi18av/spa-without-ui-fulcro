@@ -1,5 +1,6 @@
 (ns com.wsscode.pathom.connect.scratch-yt
-  (:require [clojure.core.async :refer [go timeout <!]]
+  (:require [app.secrets :as secrets]
+            [clojure.core.async :refer [go timeout <!]]
             [com.wsscode.pathom.connect :as pc]
             [com.wsscode.pathom.connect.graphql :as pcg]
             [com.wsscode.pathom.connect.youtube :as youtube]
@@ -15,16 +16,16 @@
 (def http-driver
   p.http.fetch/request-async)
 
-(def youtube-token "AIzaSyBSBm9k_g5uQoeykSbrDd7PB7eoAdi07kM")
+(def youtube-token secrets/token-yt)
 
 ;endregion
 
 ;region 1
 (pc/defresolver full-name-resolver
-                [env {:keys [first-name last-name]}]
-                {::pc/input  #{:first-name :last-name}
-                 ::pc/output [:full-name]}
-                {:full-name (str first-name " " last-name)})
+  [env {:keys [first-name last-name]}]
+  {::pc/input  #{:first-name :last-name}
+   ::pc/output [:full-name]}
+  {:full-name (str first-name " " last-name)})
 
 (comment
   (entity-parse {:first-name "Wilker" :last-name "Silva"}
@@ -51,10 +52,10 @@
    {:first-name "Delaney" :last-name "Wehner"}})
 
 (pc/defresolver email->name
-                [env {:keys [email]}]
-                {::pc/input  #{:email}
-                 ::pc/output [:first-name :last-name]}
-                (get email-db email {}))
+  [env {:keys [email]}]
+  {::pc/input  #{:email}
+   ::pc/output [:first-name :last-name]}
+  (get email-db email {}))
 
 (comment
   (entity-parse {:email "elaina.lind@gmail.com"}
@@ -71,9 +72,9 @@
 
 ;region 3
 (pc/defresolver all-emails
-                [env _]
-                {::pc/output [{:all-emails [:email]}]}
-                {:all-emails (->> email-db keys (mapv #(hash-map :email %)))})
+  [env _]
+  {::pc/output [{:all-emails [:email]}]}
+  {:all-emails (->> email-db keys (mapv #(hash-map :email %)))})
 
 (comment
   (entity-parse {} [{:all-emails [:full-name]}]))
@@ -87,8 +88,8 @@
 
 ;region 4
 (pc/defresolver the-answer [_ _]
-                {::pc/output [:answer-of-everything]}
-                {:answer-of-everything 42})
+  {::pc/output [:answer-of-everything]}
+  {:answer-of-everything 42})
 
 (comment
   (entity-parse {}
@@ -105,20 +106,20 @@
                   :host/name   "Yahoo Mail"}})
 
 (pc/defresolver email->domain [_ {:keys [email]}]
-                {::pc/input  #{:email}
-                 ::pc/output [:host/domain]}
-                (if-let [[_ domain] (re-find #"@(.+)" email)]
-                        {:host/domain domain}))
+  {::pc/input  #{:email}
+   ::pc/output [:host/domain]}
+  (if-let [[_ domain] (re-find #"@(.+)" email)]
+    {:host/domain domain}))
 
 (comment
   (entity-parse {:email "elaina.lind@gmail.com"}
                 [:host/domain]))
 
 (pc/defresolver host [_ {:host/keys [domain]}]
-                {::pc/input  #{:host/domain}
-                 ::pc/output [:host/domain
-                              :host/name]}
-                (get host-by-domain domain))
+  {::pc/input  #{:host/domain}
+   ::pc/output [:host/domain
+                :host/name]}
+  (get host-by-domain domain))
 
 (comment
   (entity-parse {:email "elaina.lind@gmail.com"}
@@ -175,9 +176,9 @@
 ;region entity-parse
 #?(:clj
    (defn entity-parse [entity query]
-         (<!! (parser {::p/entity (atom entity)} query))))
+     (<!! (parser {::p/entity (atom entity)} query))))
 ;endregion
 
 (defn entity-parse [entity query]
 
-      j)
+  j)
