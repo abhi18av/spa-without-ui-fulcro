@@ -30,7 +30,6 @@
 
 (def token secrets/token-bible)
 
-
 (def memory (atom {}))
 
 (defn api [{::keys [endpoint token]}]
@@ -39,20 +38,17 @@
                                 ::http/headers {:api-key token}
                                 ::http/as      ::http/json
                                 ::http/method  "get"})
-    #(reset! memory %)))
-
-
-(api {::token token ::endpoint ""})
-
-
-@memory
+    #(reset! memory (:com.wsscode.pathom.diplomat.http/body %))))
 
 
 (comment
 
+  @memory
+
+
   ;; Get all bibles
 
-  (api {::token token ::endpoint " "})
+  (api {::token token ::endpoint ""})
   ;; Get a bible
   (api {::token token ::endpoint "/90799bb5b996fddc-01"})
   ;; Get all books in bible
@@ -88,8 +84,7 @@
   (keyword ns (name kw)))
 
 (defn set-ns-seq
-  " Set the namespace for all keywords in a collection. The collection kind will
-                                                              be preserved. "
+  " Set the namespace for all keywords in a collection. The collection kind will be preserved. "
   [ns s]
   (into (empty s) (map #(set-ns ns %)) s))
 
@@ -121,43 +116,46 @@
     m))
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;
 ;; BIBLES
 ;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn adapt-bible [a-bible]
-  (-> a-bible
-      (namespaced-keys " bible ")
-      (pull-namespaced :bible/data " bible.data ")))
+;; TODO adapt-bible
+
+@memory
+(api {::token token ::endpoint "/90799bb5b996fddc-01"})
 
 (->
-  (api {::token token ::endpoint " /90799bb5b996fddc-01 "})
-  (namespaced-keys " bible ")
-  (pull-namespaced :bible/data " bible.data "))
+  @memory
+  (namespaced-keys "bible")
+  (pull-namespaced :bible/data "bible.data"))
 
-(defn adapt-language [a-bible]
-  (-> a-bible
-      (pull-namespaced :bible.data/language " bible.data.language ")))
+;; TODO adapt-language
 
-;; TODO
-(defn adapt-country [a-country]
-  (-> a-country
-      (namespaced-keys " bible.data.countries ")))
+(->
+  @memory
+  (namespaced-keys "bible")
+  (pull-namespaced :bible/data "bible.data")
+  (pull-namespaced :bible.data/language "bible.data.language")
+  (pc/data->shape))
 
-(defn bible-by-id [env {:bible.data/keys [id]}]
-  (->> {::endpoint (str " / " id)}
-       (merge env)
-       (api)
-       (adapt-bible)
-       (adapt-language)
-       #_(adapt-country)))
+;; TODO adapt-country
+
+
+(defn bible-by-id [env _ #_{:bible.data/keys [id]}]
+  (->> #_{::endpoint (str " / " id)}
+    #_(merge env)
+    #_(api)
+    @memory
+    (adapt-bible)
+    (adapt-language)
+    #_(adapt-country)))
 
 (def indexes
   (-> {}
       (pc/add `bible-by-id
-              {::pc/input  #{:bible.data/id}
+              {#_#_::pc/input #{:bible.data/id}
 
                ::pc/output [:bible.data.language/id
                             :bible.data.language/name
@@ -168,7 +166,7 @@
                             :bible.data/abbreviationLocal
                             :bible.data/audioBibles
                             :bible.data/copyright
-                            #:bible.data{:countries [:id :name :nameLocal]}
+                            {:bible.data/countries [:id :name :nameLocal]}
                             :bible.data/dblId
                             :bible.data/description
                             :bible.data/descriptionLocal
@@ -185,11 +183,10 @@
                                                    ::pc/indexes indexes
                                                    ::token      token})]}))
 
-(comment
-  (parser {}
-          [{[:bible.data/id " 90799bb5b996fddc-01 "]
-            [:bible.data/updatedAt
-             :bible.data.language/script]}]))
+(parser {}
+        [{[:bible.data/id " 90799bb5b996fddc-01 "]
+          [:bible.data/updatedAt
+           :bible.data.language/script]}])
 
 
 
@@ -240,3 +237,5 @@
 
 
 ;;;;;;;;;;;;;;;;;
+
+
