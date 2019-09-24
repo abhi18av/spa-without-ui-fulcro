@@ -183,7 +183,9 @@
 
 
 (comment
-  (entity-parse {} [{:spacex/all-launches}])
+  (entity-parse {} [:spacex/all-launches])
+
+  (entity-parse {} [{:spacex/all-launches [:spacex.launch/flight-number]}])
   )
 
 
@@ -197,6 +199,14 @@
          (mapv adapt-launch)
          (hash-map :spacex/past-launches))))
 
+(comment
+
+  (entity-parse {} [{:spacex/past-launches [:spacex.launch/mission-name]}])
+
+  (entity-parse {} [{:spacex/past-launches [:spacex.launch/mission-name :spacex.launch.links/video-link]}])
+  )
+
+
 (pc/defresolver upcoming-launches
   [env _]
   {::pc/output [{:spacex/upcoming-launches launch-out}]}
@@ -209,7 +219,7 @@
 
 
 (comment
-  (upcoming-launches {} [:spacex.launch/mission-name])
+  (entity-parse {} [{:spacex/upcoming-launches [:spacex.launch/mission-name]}])
   )
 
 
@@ -254,7 +264,6 @@
   {::pc/register resolvers})
 
 (comment
-
 
   (->> launches
        (mapv adapt-launch)
