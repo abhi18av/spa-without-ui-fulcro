@@ -30,15 +30,6 @@
 
 (def token secrets/token-bible)
 
-;; CLJ-http
-(defn api [{::keys [endpoint token]}]
-  (-> (client/request {:method  :get
-                       :headers {:api-key token}
-                       :as      :json
-                       :url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)})
-      :body))
-
-
 
 (defn api [{::keys [endpoint token]
             :or    {method :get}}]
@@ -54,127 +45,33 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-;
-;; CLJS
-;
-;
-;(defn api [{::keys [endpoint token]}]
-;  (go
-;    (->
-;      (<? (phttp.fetch/request-async {::http/url     (str "https://api.scripture.api.bible/v1/bibles/" endpoint)
-;                                      ::http/headers {:api-key token}
-;                                      ::http/as      ::http/json
-;                                      ::http/method  "get"}))
-;      :com.wsscode.pathom.diplomat.http/body)))
-;
-;(take! (api {::token token ::endpoint ""}) prn)
-;
-;
-;(comment
-;  ;; kept running  into
-;  ;; Access to fetch at 'https://api.scripture.api.bible/v1/bibles/' from origin 'http://localhost:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
-;  )
-;
-;
-;
-;(take!
-;  (phttp.fetch/request-async {::http/url     "https://api.scripture.api.bible/v1/bibles/"
-;                              #_#_::http/url "https://en3k20g3pbhfn.x.pipedream.net"
-;                              ::http/headers {:api-key                     token
-;                                              :mode                        :no-cors
-;                                              :Access-Control-Allow-Origin "http://localhost:8000"}
-;                              ::http/as      ::http/json
-;                              ::http/method  "get"})
-;  prn)
-;
-;
-;(take! (phttp.fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                                   ::http/as     ::http/json
-;                                   ::http/method " get "})
-;       prn)
-;
-;(go
-;  (->
-;    (<! (phttp.fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                                    ::http/as     ::http/json
-;                                    ::http/method " get "}))
-;    :com.wsscode.pathom.diplomat.http/body
-;    prn))
-;
-;(comment
-;
-;  (go
-;    (->
-;      (<! (phttp.fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                                      ::http/as     ::http/json
-;                                      ::http/method " get "}))
-;      :com.wsscode.pathom.diplomat.http/body
-;      ;;:name
-;      prn))
-;
-;  (go
-;    (take! (fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                                 ::http/as     ::http/json
-;                                 ::http/method " get "})
-;           prn))
-;
-;  (go
-;    (-> (fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                              ::http/as     ::http/json
-;                              ::http/method " get "})
-;        (take! println)))
-;
-;  (def memory (atom {}))
-;
-;  (take!
-;    (fetch/request-async {::http/url    " https:// pokeapi.co / api/v2/pokemon/1 "
-;                          ::http/as     ::http/json
-;                          ::http/method " get "})
-;    #(reset! memory %))
-;
-;  @memory)
-
-
 (comment
-
 
   ;; Get all bibles
 
-
   (api {::token token ::endpoint " "})
   ;; Get a bible
-  (api {::token token ::endpoint " /90799bb5b996fddc-01 "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01"})
   ;; Get all books in bible
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
   ;; Get all chapters of book in bible
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books/LUK/chapters "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/chapters"})
   ;; Get a chapter
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22 "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22"})
   ;; Get all passages in a chapter
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/passages/LUK.22 "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/passages/LUK.22"})
   ;; Get all verses in a chapter
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22/verses "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/verses"})
   ;; Get a verse
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/verses/LUK.22.11 "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/verses/LUK.22.11"})
   ;; Get all books
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books/LUK/sections "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/sections"})
   ;; Get all sections of a chapter
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22/sections "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/sections"})
   ;; Get a section
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/sections/LUK.S131 "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/sections/LUK.S131"})
   ;; Search a bible
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/search?query=hoje "})
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/search?query=hoje"})
 
   '())
 
