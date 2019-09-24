@@ -1,18 +1,18 @@
 (ns ^{:author "Abhinav Sharma (@abhi18av)"
       :doc    "Wraps the api for https://scripture.api.bible/livedocs "}
 
- app.-scratch.pathom.bible.scratch
+ app.-scratch.pathom.bible.bible
 
   (:require [app.secrets :as secrets]
             [clojure.core.async :refer [go timeout <! <!!]]
             [clj-http.client :as http]
             [clojure.string :as str]
             [com.wsscode.common.async-clj :refer [go-catch <? let-chan chan? <?maybe <!maybe go-promise]]
-            [com.wsscode.pathom.diplomat.http :as p.http.clj]
+            [com.wsscode.pathom.diplomat.http :as ph]
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as pc]
-            [com.wsscode.pathom.connect.graphql :as pcg]
-            #_[com.wsscode.pathom.diplomat.http :as p.http]))
+            [com.wsscode.pathom.connect.graphql :as pcg]))
+
 
 
 
@@ -29,28 +29,47 @@
                      :url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)})
       :body))
 
+
 (comment
 
 
-  (api {::token token ::endpoint "/90799bb5b996fddc-01"}))
+  ;; Get all bibles
+  (api {::token token ::endpoint ""})
+  ;; Get a bible
+  (api {::token token ::endpoint "/90799bb5b996fddc-01"})
+  ;; Get all books in bible
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
+  ;; Get all chapters of book in bible
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/chapters"})
+  ;; Get a chapter
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22"})
+  ;; Get all passages in a chapter
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/passages/LUK.22"})
+  ;; Get all verses in a chapter
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/verses"})
+  ;; Get a verse
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/verses/LUK.22.11"})
+  ;; Get all books
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/sections"})
+  ;; Get all sections of a chapter
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/sections"})
+  ;; Get a section
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/sections/LUK.S131"})
+  ;; Search a bible
+  (api {::token token ::endpoint "/90799bb5b996fddc-01/search?query=hoje"})
 
-(def bible-pt-br
-  (api {::token token ::endpoint "/90799bb5b996fddc-01"}))
+
+  '())
 
 
 ;;;;;;;;;;;
 
 
-(defn adapt-key [k]
-  (str/replace k #"_" "-"))
-
 (defn set-ns
   "Set the namespace of a keyword"
   [ns kw]
-  (keyword ns (adapt-key (name kw))))
+  (keyword ns (name kw)))
 
-(comment
-  (set-ns "an-ns" :a_key))
 
 (defn set-ns-seq
   "Set the namespace for all keywords in a collection. The collection kind will
@@ -58,19 +77,12 @@
   [ns s]
   (into (empty s) (map #(set-ns ns %)) s))
 
-(comment
-  (set-ns-seq "an-ns" [:a_key1 :a_key2]))
-
 (defn set-ns-x
   "Set the namespace of a value. If sequence will use set-ns-seq."
   [ns x]
   (if (coll? x)
     (set-ns-seq ns x)
     (set-ns ns x)))
-
-(comment
-  (set-ns-x "an-ns" :a_key)
-  (set-ns-x "an-ns" [:a_key1 :a_key2]))
 
 (defn namespaced-keys
   "Set the namespace of all map keys (non recursive)."
@@ -81,36 +93,39 @@
    {}
    e))
 
-(comment
-  (namespaced-keys bible-pt-br "bible")
-  (pc/data->shape bible-pt-br))
-
 (defn pull-namespaced
   "Pull some key, updating the namespaces of it"
   [m key ns]
   (-> (dissoc m key)
       (merge (namespaced-keys (get m key) ns))))
 
-(comment
-  (pull-namespaced bible-pt-br  :bible/data "bible.data"))
 
 (defn update-if [m k f & args]
   (if (contains? m k)
     (apply update m k f args)
     m))
 
-;; TODO
-(comment)
 
 
-
-;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;
+;; BIBLES
+;;;;;;;;;;;;;;;;;;;;;
 
 
 (defn adapt-bible [a-bible]
   (-> a-bible
       (namespaced-keys "bible")
       (pull-namespaced :bible/data "bible.data")))
+
+
+
+(->
+ (api {::token token ::endpoint "/90799bb5b996fddc-01"})
+ (namespaced-keys "bible")
+ (pull-namespaced :bible/data "bible.data"))
+
+
+
 
 (defn adapt-language [a-bible]
   (-> a-bible
@@ -123,15 +138,12 @@
 
 
 (defn bible-by-id [env {:bible.data/keys [id]}]
-  (->> {::endpoint id}
+  (->> {::endpoint (str "/" id)}
        (merge env)
        (api)
        (adapt-bible)
        (adapt-language)
        #_(adapt-country)))
-
-(pc/data->shape
- (bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"}))
 
 (def indexes
   (-> {}
@@ -164,14 +176,12 @@
                                                     ::pc/indexes indexes
                                                     ::token token})]}))
 
-(parser {}
 
-        [{[:bible.data/id  "90799bb5b996fddc-01"]
-
-          [:bible.data/updatedAt
-           :bible.data.language/script]}])
-
-
+(comment
+  (parser {}
+          [{[:bible.data/id  "90799bb5b996fddc-01"]
+            [:bible.data/updatedAt
+             :bible.data.language/script]}]))
 
 
 
@@ -188,22 +198,16 @@
 
   '())
 
-
-(def bible-pt-br-books
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"}))
-
-
-(comment
-  (pull-namespaced bible-pt-br-books  :bible/books "bible.data")
-  #_(namespaced-keys bible-pt-br-books "books")
-  (pc/data->shape bible-pt-br-books))
+;; Get all books in bible
+(->
+ (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
+ (namespaced-keys "books")
+ (pull-namespaced :books/data "data"))
 
 
 
 
-(-> bible-pt-br-books
-    (namespaced-keys "bible")
-    (pull-namespaced :bible "bible.data"))
+
 
 
 
@@ -212,26 +216,17 @@
 ;;;;;;;;;;;;;;;;;;;;;
 
 
+;; Get all chapters of book in bible
+(->
+ (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/chapters"})
+ (namespaced-keys "chapters"))
 
 
-(comment
 
+;; Get a chapter
+(->
+ (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22"})
+ (namespaced-keys "chapter"))
 
-  (api {::token token ::endpoint ""})
-
-  (api {::token token ::endpoint "/90799bb5b996fddc-01"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/chapters"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/passages/LUK.22"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/verses"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/verses/LUK.22.11"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/books/LUK/sections"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/chapters/LUK.22/sections"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/sections/LUK.S131"})
-  (api {::token token ::endpoint "/90799bb5b996fddc-01/search?query=hoje"})
-
-
-  '())
 
 
