@@ -29,19 +29,6 @@
 
 
 (def token secrets/token-bible)
-;
-;;; PATHOM CLJ
-;(defn api [{::keys [endpoint token]
-;            :or    {method :get}}]
-;  (->
-;    (com.wsscode.pathom.diplomat.http.clj-http/request
-;      {::http/url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)
-;       ::http/headers {:api-key token}
-;       ::http/as      ::http/json
-;       ::http/method  "get"})
-;    :com.wsscode.pathom.diplomat.http/body))
-;
-
 
 
 (def memory (atom {}))
