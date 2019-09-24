@@ -59,8 +59,8 @@
 
 
 (comment
-  (entity-parse {}
-                [{:all-emails [:email]}]))
+  (entity-parse {:email "elaina.lind@gmail.com"}
+                [{:all-emails [:email :full-name]}]))
 
 
 
@@ -106,6 +106,10 @@
   (entity-parse {:host/domain "yahoo.com"}
                 [:host/name]))
 
+;;;;;;;;;;;
+;;;;;;;;;;;
+
+
 (def app-registry
   [full-name-resolver
    email->name
@@ -133,13 +137,12 @@
 
 
 
-
 (comment
   (entity-parse {:first-name "Wilker" :last-name "Silva"}
                 [:full-name])
 
   (entity-parse {:email "elaina.lind@gmail.com"}
-                [:full-name])
+                [:full-name :host/domain])
 
   (pc/compute-paths (::pc/index-oir @indexes) #{:email} #{}
                     :full-name)
