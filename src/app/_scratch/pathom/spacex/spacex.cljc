@@ -220,6 +220,14 @@
 
 (comment
   (entity-parse {} [{:spacex/upcoming-launches [:spacex.launch/mission-name]}])
+
+
+  (entity-parse {} [{:spacex/upcoming-launches [{:spacex.launch.second-stage/payloads [:spacex.payload/reused]}
+                                                {:spacex.launch.first-stage/cores [:spacex.core/reused]}]}])
+
+
+  (entity-parse {} [{:spacex/upcoming-launches [{:spacex.launch.second-stage/payloads [:spacex.payload/reused]}]}])
+
   )
 
 
