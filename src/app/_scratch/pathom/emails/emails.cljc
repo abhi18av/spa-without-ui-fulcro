@@ -54,15 +54,15 @@
 (pc/defresolver all-emails
   [env _]
   {::pc/output [{:all-emails [:email]}]}
-  {:all-emails (->> email-db keys (mapv #(hash-map :email %)))})
+  {:all-emails (->> email-db
+                    keys
+                    (mapv #(hash-map :email %)))})
 
 
 
 (comment
-  (entity-parse {:email "elaina.lind@gmail.com"}
+  (entity-parse {}
                 [{:all-emails [:email :full-name]}]))
-
-
 
 
 (pc/defresolver the-answer [_ _]
@@ -73,7 +73,6 @@
 (comment
   (entity-parse {}
                 [:answer-of-everything]))
-
 
 (pc/defresolver email->domain [_ {:keys [email]}]
   {::pc/input  #{:email}
@@ -148,7 +147,9 @@
   (entity-parse {:email "elaina.lind@gmail.com"}
                 [:full-name :host/domain])
 
-  (pc/compute-paths (::pc/index-oir @indexes) #{:email} #{}
+  (pc/compute-paths (::pc/index-oir @indexes)
+                    #{:email}
+                    #{}
                     :full-name)
 
   (entity-parse {:email "elaina.lind@gmail.com"}

@@ -122,16 +122,12 @@
 
 
 ;; TODO adapt-bible
+;; TODO adapt-language
+;; TODO adapt-country
 
 @memory
+
 (api {::token token ::endpoint "/90799bb5b996fddc-01"})
-
-(->
-  @memory
-  (namespaced-keys "bible")
-  (pull-namespaced :bible/data "bible.data"))
-
-;; TODO adapt-language
 
 (->
   @memory
@@ -140,48 +136,128 @@
   (pull-namespaced :bible.data/language "bible.data.language")
   (pc/data->shape))
 
-;; TODO adapt-country
 
 
-(defn bible-by-id [env _ #_{:bible.data/keys [id]}]
-  (->> #_{::endpoint (str " / " id)}
-    #_(merge env)
-    #_(api)
+(def bible-br
+  (->
     @memory
-    (adapt-bible)
-    (adapt-language)
-    #_(adapt-country)))
+    (namespaced-keys "bible")
+    (pull-namespaced :bible/data "bible.data")
+    (pull-namespaced :bible.data/language "bible.data.language")))
 
-(def indexes
-  (-> {}
-      (pc/add `bible-by-id
-              {#_#_::pc/input #{:bible.data/id}
 
-               ::pc/output [:bible.data.language/id
-                            :bible.data.language/name
-                            :bible.data.language/nameLocal
-                            :bible.data.language/script
-                            :bible.data.language/scriptDirection
-                            :bible.data/abbreviation
-                            :bible.data/abbreviationLocal
-                            :bible.data/audioBibles
-                            :bible.data/copyright
-                            {:bible.data/countries [:id :name :nameLocal]}
-                            :bible.data/dblId
-                            :bible.data/description
-                            :bible.data/descriptionLocal
-                            :bible.data/id
-                            :bible.data/info
-                            :bible.data/name
-                            :bible.data/nameLocal
-                            :bible.data/relatedDbl
-                            :bible.data/type
-                            :bible.data/updatedAt]})))
+(def bible {:bible.data/updatedAt                "2019-08-16T05:57:31.000Z",
+            :bible.data/abbreviationLocal        "TfTP",
+            :bible.data/countries                [{:id "BR", :name "Brazil", :nameLocal "Brazil"}],
+            :bible.data/info                     "<p>This text is provided courtesy of Ellis W. Deibler, Jr. Proofreading and spelling correction by Ethnos 360 (New Tribes Mission) is gratefully acknowledged.</p>",
+            :bible.data/name                     "Translation for Translators in Brasilian Portuguese",
+            :bible.data/descriptionLocal         "comum",
+            :bible.data.language/name            "Portuguese",
+            :bible.data/copyright                "Copyright © 2018 Ellis W. Deibler, Jr. Released under a CC-BY-SA 4.0 license.",
+            :bible.data/id                       "90799bb5b996fddc-01",
+            :bible.data/type                     "text",
+            :bible.data.language/id              "por",
+            :bible.data/description              "common",
+            :bible.data/relatedDbl               nil,
+            :bible.data/audioBibles              [],
+            :bible.data.language/script          "Latin",
+            :bible.data/abbreviation             "TfTP",
+            :bible.data/nameLocal                "Translation for Translators in Brasilian Portuguese",
+            :bible.data.language/nameLocal       "Português",
+            :bible.data/dblId                    "90799bb5b996fddc",
+            :bible.data.language/scriptDirection "LTR"}
+  )
 
-(def parser (p/parser {::p/plugins [(p/env-plugin {::p/reader   [p/map-reader
-                                                                 pc/all-readers]
-                                                   ::pc/indexes indexes
-                                                   ::token      token})]}))
+
+
+
+(def indexes (atom {}))
+
+
+(pc/defresolver bible-id->language
+  [env {:keys [id]}]
+  {#_#_::pc/input #{}
+   ::pc/output [:language #_[:bible.data.language/id]]}
+  {:language (get bible :bible.data.language/id)})
+
+(comment
+
+  (entity-parse {:id "90799bb5b996fddc-01"}
+                [:language])
+
+  (entity-parse {} [:bible.data/id "90799bb5b996fddc-01"])
+  )
+
+
+(pc/defresolver my-number [_ _]
+  {::pc/output [:my-number]}
+  {:my-number 18})
+
+
+(comment
+  (entity-parse {}
+                [:my-number :answer-of-everything]))
+
+
+(pc/defresolver the-answer [_ _]
+  {::pc/output [:answer-of-everything]}
+  {:answer-of-everything 42})
+
+
+(comment
+  (entity-parse {}
+                [:answer-of-everything :my-number]))
+
+
+
+(def app-registry
+  [bible-id->language
+   the-answer
+   my-number])
+
+(def parser
+  (p/parallel-parser
+    {::p/env     {::p/reader               [p/map-reader
+                                            pc/parallel-reader
+                                            pc/open-ident-reader
+                                            p/env-placeholder-reader]
+                  ::p/placeholder-prefixes #{">"}}
+     ::p/plugins [(pc/connect-plugin {::pc/register app-registry
+                                      ::pc/indexes  indexes})
+                  p/error-handler-plugin
+                  p/trace-plugin]}))
+
+
+
+#?(:cljs
+   (defn entity-parse [entity query]
+     (take! (parser {::p/entity (atom entity)} query) prn)))
+
+
+
+(comment
+
+  (entity-parse {} [:bible.data/id "90799bb5b996fddc-01"])
+
+
+  [{[:bible.data/id " 90799bb5b996fddc-01 "]
+    [:bible.data/updatedAt
+     :bible.data.language/script]}]
+
+
+  (entity-parse {:first-name "Wilker" :last-name "Silva"}
+                [:full-name])
+
+  (entity-parse {:email "elaina.lind@gmail.com"}
+                [:full-name :host/domain])
+
+  (pc/compute-paths (::pc/index-oir @indexes) #{:email} #{}
+                    :full-name)
+
+  (entity-parse {:email "elaina.lind@gmail.com"}
+                [:host/domain])
+  )
+
 
 (parser {}
         [{[:bible.data/id " 90799bb5b996fddc-01 "]
