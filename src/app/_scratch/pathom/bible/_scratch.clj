@@ -92,7 +92,7 @@
       (merge (namespaced-keys (get m key) ns))))
 
 (comment
-  (pull-namespaced bible-pt-br  :bible/data "bible.data"))
+  (pull-namespaced bible-pt-br  :bible/data "data"))
 
 (defn update-if [m k f & args]
   (if (contains? m k)
@@ -112,14 +112,37 @@
       (namespaced-keys "bible")
       (pull-namespaced :bible/data "bible.data")))
 
+(-> bible-pt-br
+    (namespaced-keys "bible")
+    (pull-namespaced :bible/data "bible.data"))
+
+
+
 (defn adapt-language [a-bible]
   (-> a-bible
       (pull-namespaced :bible.data/language "bible.data.language")))
+
 
 ;; TODO
 (defn adapt-country [a-country]
   (-> a-country
       (namespaced-keys "bible.data.countries")))
+
+
+(->> {::endpoint  "/90799bb5b996fddc-01"}
+     (merge {::token token})
+     (api)
+     (adapt-bible)
+     (adapt-language)
+
+     ;; :bible.data/countries
+     ;; (mapv adapt-country)
+     ;; (hash-map :bible.data.countries)
+
+     #_(update :bible.data/countries adapt-country)
+     #_(update :bible.data/countries #(mapv adapt-country %))
+     #_(adapt-country))
+
 
 
 (defn bible-by-id [env {:bible.data/keys [id]}]
@@ -130,8 +153,17 @@
        (adapt-language)
        #_(adapt-country)))
 
+
+(->> {::endpoint  "/90799bb5b996fddc-01"}
+     (merge {::token token})
+     (api)
+     (adapt-bible)
+     (adapt-language)
+     pc/data->shape)
+
+
 (pc/data->shape
- (bible-by-id {::token token} {:bible.data/id  "90799bb5b996fddc-01"}))
+ (bible-by-id {::token token} {:bible.data/id  "/90799bb5b996fddc-01"}))
 
 (def indexes
   (-> {}
@@ -166,9 +198,10 @@
 
 (parser {}
 
-        [{[:bible.data/id  "90799bb5b996fddc-01"]
+        [{[:bible.data/id  "/90799bb5b996fddc-01"]
 
           [:bible.data/updatedAt
+           {:bible.data/countries [:name]}
            :bible.data.language/script]}])
 
 
@@ -233,5 +266,44 @@
 
 
   '())
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(-> (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
+    (namespaced-keys "bible.books")
+    #_(pull-namespaced :bible.books/data "bible.data"))
+
+
+
+
+(->> {::endpoint  "/90799bb5b996fddc-01/books"}
+     (merge {::token token})
+     (api)
+     :data
+     (hash-map :bible.data.books)
+     #_(namespaced-keys "bible.books")
+     #_(pull-namespaced :books/data "books.data")
+     pc/data->shape)
+
+
+
+(def indexes
+  (-> {}
+      (pc/add `bible-by-id
+              {::pc/input #{:bible.data/id}
+
+               ::pc/output [{:bible.data.books [:abbreviation :bibleId :id :name :nameLong]}]})))
+
+(def parser (p/parser {::p/plugins [(p/env-plugin  {::p/reader [p/map-reader
+                                                                pc/all-readers]
+                                                    ::pc/indexes indexes
+                                                    ::token token})]}))
+
+(parser {}
+
+        [{[:bible.data/id  "/90799bb5b996fddc-01/books"]
+          [{:bible.data.books [:id]}]}])
+
 
 

@@ -25,6 +25,13 @@
    ::pc/output [:full-name]}
   {:full-name (str first-name " " last-name)})
 
+(comment
+
+  (entity-parse {:first-name "Wilker" :last-name "Silva"}
+                [:full-name]))
+
+
+
 
 (pc/defresolver email->name
   [env {:keys [email]}]
@@ -32,15 +39,51 @@
    ::pc/output [:first-name :last-name]}
   (get email-db email {}))
 
+
+(comment
+
+
+  (get email-db  "elaina.lind@gmail.com" {})
+
+
+  (entity-parse {:email "elaina.lind@gmail.com"}
+                [:full-name]))
+
+
+
 (pc/defresolver all-emails
   [env _]
   {::pc/output [{:all-emails [:email]}]}
   {:all-emails (->> email-db keys (mapv #(hash-map :email %)))})
 
+
+
+(comment
+  (entity-parse {}
+                [{:all-emails [:email]}]))
+
+
+
+
 (pc/defresolver the-answer [_ _]
   {::pc/output [:answer-of-everything]}
   {:answer-of-everything 42})
 
+
+(comment
+  (entity-parse {}
+                [:answer-of-everything]))
+
+
+(pc/defresolver email->domain [_ {:keys [email]}]
+  {::pc/input  #{:email}
+   ::pc/output [:host/domain]}
+  (if-let [[_ domain] (re-find #"@(.+)" email)]
+    {:host/domain domain}))
+
+(comment
+  (entity-parse {:email "shanna.harber@yahoo.com"}
+                [:host/domain]))
 
 
 (def host-by-domain
@@ -51,11 +94,6 @@
    "yahoo.com"   {:host/domain "yahoo.com"
                   :host/name   "Yahoo Mail"}})
 
-(pc/defresolver email->domain [_ {:keys [email]}]
-  {::pc/input  #{:email}
-   ::pc/output [:host/domain]}
-  (if-let [[_ domain] (re-find #"@(.+)" email)]
-    {:host/domain domain}))
 
 (pc/defresolver host [_ {:host/keys [domain]}]
   {::pc/input  #{:host/domain}
@@ -64,7 +102,9 @@
   (get host-by-domain domain))
 
 
-
+(comment
+  (entity-parse {:host/domain "yahoo.com"}
+                [:host/name]))
 
 (def app-registry
   [full-name-resolver

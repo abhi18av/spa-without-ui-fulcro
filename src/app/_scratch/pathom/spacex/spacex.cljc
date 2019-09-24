@@ -4,12 +4,12 @@
             [#?(:clj  com.wsscode.common.async-clj
                 :cljs com.wsscode.common.async-cljs)
              :refer [go-catch <? let-chan chan? <?maybe <!maybe go-promise]]
-            #?(:clj  [com.wsscode.pathom.diplomat.http :as p.http.clj]
+            #?(:clj [com.wsscode.pathom.diplomat.http.clj-http :as p.http.clj]
                :cljs [com.wsscode.pathom.diplomat.http.fetch :as p.http.fetch])
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as pc]
             [com.wsscode.pathom.connect.graphql :as pcg]
-            #_[com.wsscode.pathom.diplomat.http :as p.http]))
+            [com.wsscode.pathom.diplomat.http :as p.http]))
 
 
 (defn adapt-key [k]
@@ -181,16 +181,6 @@
          (mapv adapt-launch)
          (hash-map :spacex/all-launches))))
 
-(comment
-;; TODO doesn't work
-  (go-catch
-   (->> (p.http/request {} "https://api.spacexdata.com/v3/launches"
-                        {::p.http/accept ::p.http/json}) <?maybe
-        ::p.http/body
-        (mapv adapt-launch)
-        (hash-map :spacex/all-launches))))
-
-
 (pc/defresolver past-launches
   [env _]
   {::pc/output [{:spacex/past-launches launch-out}]}
@@ -211,6 +201,10 @@
          (mapv adapt-launch)
          (hash-map :spacex/upcoming-launches))))
 
+
+(comment
+  (upcoming-launches {} {}))
+
 (pc/defresolver one-launch
   [env {:spacex.launch/keys [flight-number]}]
   {::pc/input     #{:spacex.launch/flight-number}
@@ -222,6 +216,10 @@
          ::p.http/body
          adapt-launch)))
 
+(comment
+  (one-launch {} {:spacex.launch/flight-number 67}))
+
+
 (pc/defresolver latest-launch
   [env _]
   {::pc/output [{:spacex/latest-launch launch-out}]}
@@ -232,6 +230,12 @@
          adapt-launch
          (hash-map :spacex/latest-launch))))
 
+
+(comment
+  (latest-launch {} {}))
+
+
+
 (def resolvers
   [all-launches past-launches upcoming-launches one-launch latest-launch])
 
@@ -239,6 +243,7 @@
   {::pc/register resolvers})
 
 (comment
+
 
   (->> launches
        (mapv adapt-launch)
@@ -295,20 +300,12 @@
 
 
 (comment
-  (entity-parse {}
-                [:spacex/all-launches]))
+  (entity-parse  {[:spacex/all-launches] [:spacex.launch/details]})
 
+  (entity-parse [:spacex/latest-launch] {})
 
-
-
-(comment
-
-  (entity-parse {[:spacex.launch/flight-number 67]})
 
 
  (entity-parse {}
-  [{:spacex/all-launches
-    [:spacex.launch/flight-number
-     :spacex.launch.links/video-link]}]))
-
-
+  [{[:spacex/flight-number 67]
+    [:spacex.launch/details]}]))

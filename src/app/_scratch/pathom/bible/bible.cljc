@@ -201,7 +201,7 @@
 ;; Get all books in bible
 (->
  (api {::token token ::endpoint "/90799bb5b996fddc-01/books"})
- (namespaced-keys "books")
+ :data
  (pull-namespaced :books/data "data"))
 
 
