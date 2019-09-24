@@ -1,10 +1,10 @@
-(ns com.wsscode.pathom.connect.spacex
-  (:require [clojure.core.async :refer [go timeout <! #?(:clj <!!)]]
+(ns app.-scratch.pathom.spacex.spacex
+  (:require [clojure.core.async :refer [go timeout <! take! #?(:clj <!!)]]
             [clojure.string :as str]
             [#?(:clj  com.wsscode.common.async-clj
                 :cljs com.wsscode.common.async-cljs)
              :refer [go-catch <? let-chan chan? <?maybe <!maybe go-promise]]
-            #?(:clj [com.wsscode.pathom.diplomat.http.clj-http :as p.http.clj]
+            #?(:clj  [com.wsscode.pathom.diplomat.http.clj-http :as p.http.clj]
                :cljs [com.wsscode.pathom.diplomat.http.fetch :as p.http.fetch])
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as pc]
@@ -176,17 +176,23 @@
   {::pc/output [{:spacex/all-launches launch-out}]}
   (go-catch
     (->> (p.http/request env "https://api.spacexdata.com/v3/launches"
-           {::p.http/accept ::p.http/json}) <?maybe
+                         {::p.http/accept ::p.http/json}) <?maybe
          ::p.http/body
          (mapv adapt-launch)
          (hash-map :spacex/all-launches))))
+
+
+(comment
+  (entity-parse {} [{:spacex/all-launches}])
+  )
+
 
 (pc/defresolver past-launches
   [env _]
   {::pc/output [{:spacex/past-launches launch-out}]}
   (go-catch
     (->> (p.http/request env "https://api.spacexdata.com/v3/launches/past?limit=10"
-           {::p.http/accept ::p.http/json}) <?maybe
+                         {::p.http/accept ::p.http/json}) <?maybe
          ::p.http/body
          (mapv adapt-launch)
          (hash-map :spacex/past-launches))))
@@ -196,14 +202,16 @@
   {::pc/output [{:spacex/upcoming-launches launch-out}]}
   (go-catch
     (->> (p.http/request env "https://api.spacexdata.com/v3/launches/upcoming"
-           {::p.http/accept ::p.http/json}) <?maybe
+                         {::p.http/accept ::p.http/json}) <?maybe
          ::p.http/body
          (mapv adapt-launch)
          (hash-map :spacex/upcoming-launches))))
 
 
 (comment
-  (upcoming-launches {} {}))
+  (upcoming-launches {} [:spacex.launch/mission-name])
+  )
+
 
 (pc/defresolver one-launch
   [env {:spacex.launch/keys [flight-number]}]
@@ -212,12 +220,15 @@
    ::pc/transform (pc/transform-auto-batch 10)}
   (go-catch
     (->> (p.http/request env (str "https://api.spacexdata.com/v3/launches/" flight-number)
-           {::p.http/accept ::p.http/json}) <?maybe
+                         {::p.http/accept ::p.http/json}) <?maybe
          ::p.http/body
          adapt-launch)))
 
 (comment
-  (one-launch {} {:spacex.launch/flight-number 67}))
+
+  (one-launch {:spacex.launch/flight-number 67} [:spacex.launch/details])
+
+  )
 
 
 (pc/defresolver latest-launch
@@ -225,7 +236,7 @@
   {::pc/output [{:spacex/latest-launch launch-out}]}
   (go-catch
     (->> (p.http/request env "https://api.spacexdata.com/v3/launches/latest"
-           {::p.http/accept ::p.http/json}) <?maybe
+                         {::p.http/accept ::p.http/json}) <?maybe
          ::p.http/body
          adapt-launch
          (hash-map :spacex/latest-launch))))
@@ -297,15 +308,20 @@
      (<!! (parser {::p/entity (atom entity)} query))))
 
 
+#?(:cljs
+   (defn entity-parse [entity query]
+     (take! (parser {::p/entity (atom entity)} query) prn)))
+
+
 
 
 (comment
-  (entity-parse  {[:spacex/all-launches] [:spacex.launch/details]})
+  (entity-parse {[:spacex/all-launches] [:spacex.launch/details]})
 
   (entity-parse [:spacex/latest-launch] {})
 
 
 
- (entity-parse {}
-  [{[:spacex/flight-number 67]
-    [:spacex.launch/details]}]))
+  (entity-parse {}
+                [{[:spacex/flight-number 67]
+                  [:spacex.launch/details]}]))
