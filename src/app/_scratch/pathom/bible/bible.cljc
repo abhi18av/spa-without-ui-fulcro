@@ -1,12 +1,12 @@
 (ns ^{:author "Abhinav Sharma (@abhi18av)"
       :doc    "Wraps the api for https://scripture.api.bible/livedocs "}
 
- app.-scratch.pathom.bible.bible
+  app.-scratch.pathom.bible.bible
 
   (:require [app.secrets :as secrets]
             [clojure.string :as str]
 
-            #?(:clj  [clj-http.client :as client])
+            #?(:clj [clj-http.client :as client])
 
             [clojure.core.async :refer [go timeout <! take! #?(:clj <!!)]]
 
@@ -29,20 +29,36 @@
 
 
 (def token secrets/token-bible)
+;
+;;; PATHOM CLJ
+;(defn api [{::keys [endpoint token]
+;            :or    {method :get}}]
+;  (->
+;    (com.wsscode.pathom.diplomat.http.clj-http/request
+;      {::http/url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)
+;       ::http/headers {:api-key token}
+;       ::http/as      ::http/json
+;       ::http/method  "get"})
+;    :com.wsscode.pathom.diplomat.http/body))
+;
 
 
-(defn api [{::keys [endpoint token]
-            :or    {method :get}}]
-  (->
-   (com.wsscode.pathom.diplomat.http.clj-http/request
-    {::http/url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)
-     ::http/headers {:api-key token}
-     ::http/as      ::http/json
-     ::http/method  "get"})
-   :com.wsscode.pathom.diplomat.http/body))
+
+(def memory (atom {}))
+
+(defn api [{::keys [endpoint token]}]
+  (take!
+    (phttp.fetch/request-async {::http/url     (str "https://api.scripture.api.bible/v1/bibles" endpoint)
+                                ::http/headers {:api-key token}
+                                ::http/as      ::http/json
+                                ::http/method  "get"})
+    #(reset! memory %)))
+
 
 (api {::token token ::endpoint ""})
 
+
+@memory
 
 
 (comment
@@ -101,10 +117,10 @@
   " Set the namespace of all map keys (non recursive) . "
   [e ns]
   (reduce-kv
-   (fn [x k v]
-     (assoc x (set-ns-x ns k) v))
-   {}
-   e))
+    (fn [x k v]
+      (assoc x (set-ns-x ns k) v))
+    {}
+    e))
 
 (defn pull-namespaced
   " Pull some key, updating the namespaces of it "
@@ -130,9 +146,9 @@
       (pull-namespaced :bible/data " bible.data ")))
 
 (->
- (api {::token token ::endpoint " /90799bb5b996fddc-01 "})
- (namespaced-keys " bible ")
- (pull-namespaced :bible/data " bible.data "))
+  (api {::token token ::endpoint " /90799bb5b996fddc-01 "})
+  (namespaced-keys " bible ")
+  (pull-namespaced :bible/data " bible.data "))
 
 (defn adapt-language [a-bible]
   (-> a-bible
@@ -202,9 +218,9 @@
 
 ;; Get all books in bible
 (->
- (api {::token token ::endpoint " /90799bb5b996fddc-01/books "})
- :data
- (pull-namespaced :books/data " data "))
+  (api {::token token ::endpoint " /90799bb5b996fddc-01/books "})
+  :data
+  (pull-namespaced :books/data " data "))
 
 
 
@@ -222,8 +238,8 @@
 
 
 (->
- (api {::token token ::endpoint " /90799bb5b996fddc-01/books/LUK/chapters "})
- (namespaced-keys " chapters "))
+  (api {::token token ::endpoint " /90799bb5b996fddc-01/books/LUK/chapters "})
+  (namespaced-keys " chapters "))
 
 
 
@@ -231,8 +247,8 @@
 
 
 (->
- (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22 "})
- (namespaced-keys " chapter "))
+  (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22 "})
+  (namespaced-keys " chapter "))
 
 
 
