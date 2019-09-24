@@ -138,3 +138,25 @@
 
   @memory)
 
+
+
+
+(pc/defresolver my-number [_ _]
+  {::pc/output [:my-number]}
+  {:my-number 18})
+
+
+(comment
+  (entity-parse {}
+                [:my-number :answer-of-everything]))
+
+
+(pc/defresolver the-answer [_ _]
+  {::pc/output [:answer-of-everything]}
+  {:answer-of-everything 42})
+
+
+(comment
+  (entity-parse {}
+                [:answer-of-everything :my-number]))
+

@@ -189,31 +189,48 @@
   )
 
 
-(pc/defresolver my-number [_ _]
-  {::pc/output [:my-number]}
-  {:my-number 18})
+
+
+
+(pc/defresolver bible-id->language
+  [env {:keys [id]}]
+  {#_#_::pc/input #{}
+   ::pc/output [:language #_[:bible.data.language/id]]}
+  {:language (get bible :bible.data.language/id)})
+
+(comment
+
+  (entity-parse {:id "90799bb5b996fddc-01"}
+                [:language])
+
+  '())
+
+
+(pc/defresolver bible-id->country
+  [env {:keys [id]}]
+  {#_#_::pc/input #{}
+   ::pc/output [:country #_[:bible.data.language/id]]}
+  {:country (get bible :bible.data/countries)})
 
 
 (comment
-  (entity-parse {}
-                [:my-number :answer-of-everything]))
 
+  (entity-parse {:id "90799bb5b996fddc-01"}
+                [:country])
 
-(pc/defresolver the-answer [_ _]
-  {::pc/output [:answer-of-everything]}
-  {:answer-of-everything 42})
+  (entity-parse {:id "90799bb5b996fddc-01"}
+                {:country [:id]})
 
+  (entity-parse {:id "90799bb5b996fddc-01"}
+                [:country :language])
 
-(comment
-  (entity-parse {}
-                [:answer-of-everything :my-number]))
+  '())
 
 
 
 (def app-registry
   [bible-id->language
-   the-answer
-   my-number])
+   bible-id->country])
 
 (def parser
   (p/parallel-parser
@@ -259,59 +276,5 @@
   )
 
 
-(parser {}
-        [{[:bible.data/id " 90799bb5b996fddc-01 "]
-          [:bible.data/updatedAt
-           :bible.data.language/script]}])
-
-
-
-;;;;;;;;;;;;;;;;;;;;;
-;; BOOKS
-;;;;;;;;;;;;;;;;;;;;;
-
-
-(comment
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books "})
-
-  '())
-
-;; Get all books in bible
-(->
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books "})
-  :data
-  (pull-namespaced :books/data " data "))
-
-
-
-
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;
-;; CHAPTERS
-;;;;;;;;;;;;;;;;;;;;;
-
-
-;; Get all chapters of book in bible
-
-
-(->
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/books/LUK/chapters "})
-  (namespaced-keys " chapters "))
-
-
-
-;; Get a chapter
-
-
-(->
-  (api {::token token ::endpoint " /90799bb5b996fddc-01/chapters/LUK.22 "})
-  (namespaced-keys " chapter "))
-
-
-
-;;;;;;;;;;;;;;;;;
 
 
